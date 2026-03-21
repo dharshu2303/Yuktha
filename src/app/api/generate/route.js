@@ -28,9 +28,9 @@ export async function POST(request) {
     return NextResponse.json({
       previewContent: result.previewContent,
       publishedContent: result.publishedContent,
-      template: result.template,
+      previewData: result.previewData,
+      publishedData: result.publishedData,
       metaTags: result.metaTags,
-      extractedData: result.extractedData,
     });
   } catch (error) {
     console.error("Generate API error:", error);

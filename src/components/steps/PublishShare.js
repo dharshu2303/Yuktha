@@ -37,7 +37,7 @@ function ConfettiBurst() {
   );
 }
 
-export default function PublishShare({ publishedUrl, onCreateAnother }) {
+export default function PublishShare({ publishedUrl, localUrl, onCreateAnother }) {
   const { t, language } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -146,6 +146,19 @@ export default function PublishShare({ publishedUrl, onCreateAnother }) {
               {t("shareWhatsApp")}
             </Button>
           </div>
+
+          {/* View Website in Selected Language CTA */}
+          {localUrl && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                variant="accent"
+                onClick={() => window.open(localUrl, "_blank")}
+                className="w-full"
+              >
+                {t("viewInLanguage")}
+              </Button>
+            </div>
+          )}
 
           {/* Create Another */}
           <button

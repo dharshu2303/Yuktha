@@ -3,11 +3,11 @@ import { refineContent } from "@/lib/gemini";
 
 export async function POST(request) {
   try {
-    const { currentContent, userMessage, language } = await request.json();
+    const { previewData, publishedData, userMessage, language } = await request.json();
 
-    if (!currentContent || !userMessage) {
+    if (!previewData || !publishedData || !userMessage) {
       return NextResponse.json(
-        { error: "Content and message are required" },
+        { error: "Data and message are required" },
         { status: 400 }
       );
     }
@@ -20,7 +20,8 @@ export async function POST(request) {
     }
 
     const result = await refineContent(
-      currentContent,
+      previewData,
+      publishedData,
       userMessage,
       language || "en"
     );
@@ -28,6 +29,8 @@ export async function POST(request) {
     return NextResponse.json({
       updatedPreviewContent: result.updatedPreviewContent,
       updatedPublishedContent: result.updatedPublishedContent,
+      updatedPreviewData: result.updatedPreviewData,
+      updatedPublishedData: result.updatedPublishedData,
       aiMessage: result.aiMessage,
     });
   } catch (error) {

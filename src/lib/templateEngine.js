@@ -1,5 +1,5 @@
 export function buildModernTemplate(data, isPreview, langName) {
-  const { name, business, designation, phone, email, address, services } = data;
+  const { name, business, designation, phone, email, address, services, tagline } = data;
 
   // Add fallbacks
   const displayName = name || business || "My Business";
@@ -39,6 +39,7 @@ export function buildModernTemplate(data, isPreview, langName) {
             </h1>
             <p class="text-xl md:text-2xl text-indigo-200 mb-8 font-light">
                 ${designation ? designation + ' • ' : ''}${displayBusiness}
+                ${tagline ? `<br><span class="text-lg opacity-80 italic mt-2 inline-block">"${tagline}"</span>` : ''}
             </p>
             ${phone ? `<a href="${phoneLink}" class="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-4 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg"><i class="fas fa-phone"></i> Call Now</a>` : ''}
         </div>

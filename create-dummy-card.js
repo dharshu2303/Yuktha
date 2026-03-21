@@ -1,0 +1,1 @@
+require('fs').writeFileSync('e:\\Yuktha\\dummy-card.png', Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAGVJREFUKFNjZCASMDKgAgz//v1/gWIZGRlPMDKgAwwMDH+hSrgYGRn++f//P1wFpP//v//HIf//f6QKPv//j1RB7N//fw4YGRj+/f///1+4E1++fPkfGQoMDCAiYGFhYYZVQxSDBQCPmC6wO5x+5QAAAABJRU5ErkJggg==', 'base64'));

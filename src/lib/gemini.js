@@ -14,19 +14,27 @@ const LANGUAGE_NAMES = {
 };
 
 // Models to try in order (fallback chain)
+// gemini-2.5-flash has best free tier: 500 RPM, 1M tokens
 const MODEL_CHAIN = [
+  "gemini-2.5-flash",
   "gemini-2.0-flash",
   "gemini-2.0-flash-lite",
-  "gemini-1.5-pro",
 ];
 
-/**
- * Retry wrapper with exponential backoff and model fallback
- */
+
 async function callWithRetry(fn, maxRetries = 3) {
   for (let modelIdx = 0; modelIdx < MODEL_CHAIN.length; modelIdx++) {
     const modelName = MODEL_CHAIN[modelIdx];
-    const model = genAI.getGenerativeModel({ model: modelName });
+    
+    // Configure model — disable thinking for 2.5 models to save tokens
+    const config = { model: modelName };
+    if (modelName.includes("2.5")) {
+      config.generationConfig = {
+        temperature: 0.2,
+        thinkingConfig: { thinkingBudget: 0 },
+      };
+    }
+    const model = genAI.getGenerativeModel(config);
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
@@ -49,7 +57,7 @@ async function callWithRetry(fn, maxRetries = 3) {
 
         // If rate limited, wait and retry
         if (is429) {
-          const waitTime = Math.min(Math.pow(2, attempt + 1) * 15000, 65000);
+          const waitTime = Math.min(Math.pow(2, attempt + 1) * 5000, 30000);
           console.warn(
             `Rate limited on ${modelName} (attempt ${attempt + 1}/${maxRetries}), waiting ${waitTime / 1000}s...`
           );
@@ -94,29 +102,43 @@ export async function generateFromCard(imageBase64, voiceText, language) {
 
   const prompt = `You are an expert data extractor. Analyze this business card image and extract the details.
 
-Extract the following from the card:
+Extract the following from the card and any user-provided context:
 - name (person or business name)
 - business (type of business)
 - designation (job title if any)
 - phone (with country code if visible)
 - email
 - address
-- services (list of services or products)
+- services (list of 4-6 specific services or products)
+- tagline (a catchy 1-sentence business slogan or tagline based on the services)
 
 ${voiceText ? `Additional business details provided by the owner: "${voiceText}"` : ""}
 
-Translate all the extracted text into ${langName} language for the user.
+Generate two versions of this data:
+1. previewData: All fields completely translated into ${langName} for the user. CRITICAL REQUIREMENT: The previewData MUST be 100% in ${langName} without a single English word by any chance. Translate every business term, service, and tagline strictly to ${langName}.
+2. publishedData: All fields in professional English for the public website.
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):
 {
-  "extractedData": {
+  "previewData": {
     "name": "",
     "business": "",
     "designation": "",
     "phone": "",
     "email": "",
     "address": "",
-    "services": []
+    "services": [],
+    "tagline": ""
+  },
+  "publishedData": {
+    "name": "",
+    "business": "",
+    "designation": "",
+    "phone": "",
+    "email": "",
+    "address": "",
+    "services": [],
+    "tagline": ""
   },
   "metaTags": {
     "title": "",
@@ -161,9 +183,9 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
     throw new Error("Failed to parse AI response: Invalid JSON");
   }
 
-  // Use Hybrid Template Engine to assemble HTML instantly (saving tokens and API latency)
-  const previewContent = buildModernTemplate(parsed.extractedData, true, langName);
-  const publishedContent = buildModernTemplate(parsed.extractedData, false, 'English');
+  // Use Hybrid Template Engine to assemble HTML instantly
+  const previewContent = buildModernTemplate(parsed.previewData, true, langName);
+  const publishedContent = buildModernTemplate(parsed.publishedData, false, 'English');
 
   return {
     ...parsed,
@@ -176,28 +198,29 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
  * Refine website content based on user instruction
  * Returns updated preview (user's language) and published (English) versions
  */
-export async function refineContent(currentContent, userMessage, language) {
+export async function refineContent(previewData, publishedData, userMessage, language) {
   const langName = LANGUAGE_NAMES[language] || "English";
 
   const prompt = `You are a web developer. The user wants to modify their website. 
 
-Current website HTML (in ${langName}):
-${currentContent}
+Current website data (for preview in ${langName}):
+${JSON.stringify(previewData, null, 2)}
+
+Current website data (for publication in English):
+${JSON.stringify(publishedData, null, 2)}
 
 User's instruction (in ${langName}):
 "${userMessage}"
 
-Apply the requested changes and return the updated website. Generate TWO versions:
-1. updatedPreviewContent: Updated HTML in ${langName} (for the owner to preview)
-2. updatedPublishedContent: Updated HTML in professional English (for the live published site)
+Apply the requested changes to BOTH data objects. CRITICAL REQUIREMENT: Ensure the updatedPreviewData remains 100% in ${langName} without a single English word by any chance. The updatedPublishedData must remain in professional English.
 
 Also provide a brief confirmation message in ${langName} describing what you changed.
 
-Respond ONLY with valid JSON (no markdown, no code blocks):
+Respond ONLY with valid JSON in this exact format (no markdown or thinking):
 {
-  "updatedPreviewContent": "<complete updated HTML in ${langName}>",
-  "updatedPublishedContent": "<complete updated HTML in English>",
-  "aiMessage": "<brief confirmation in ${langName}>"
+  "updatedPreviewData": { ... },
+  "updatedPublishedData": { ... },
+  "aiMessage": "brief confirmation in ${langName}"
 }`;
 
   const result = await callWithRetry(async (model) => {
@@ -218,8 +241,9 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
 
   const jsonString = text.substring(jsonStart, jsonEnd + 1);
 
+  let parsed;
   try {
-    return JSON.parse(jsonString);
+    parsed = JSON.parse(jsonString);
   } catch (e) {
     console.error(
       "Failed to parse Gemini refine response:",
@@ -227,4 +251,14 @@ Respond ONLY with valid JSON (no markdown, no code blocks):
     );
     throw new Error("Failed to parse AI response: Invalid JSON");
   }
+
+  // Use Hybrid Template Engine to rebuild HTML
+  const updatedPreviewContent = buildModernTemplate(parsed.updatedPreviewData, true, langName);
+  const updatedPublishedContent = buildModernTemplate(parsed.updatedPublishedData, false, 'English');
+
+  return {
+    ...parsed,
+    updatedPreviewContent,
+    updatedPublishedContent,
+  };
 }

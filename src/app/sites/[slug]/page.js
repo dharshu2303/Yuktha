@@ -15,17 +15,21 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default async function SitePage({ params }) {
+export default async function SitePage({ params, searchParams }) {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const site = await getSite(resolvedParams.slug);
 
   if (!site) {
     notFound();
   }
 
+  const isLocal = resolvedSearchParams?.lang === "local";
+  const htmlToRender = isLocal && site.previewHtml ? site.previewHtml : site.html;
+
   // The generated HTML is a complete standalone document.
   // Render it as a full-page iframe to avoid nested <html> within the Next.js layout.
-  const encodedHtml = Buffer.from(site.html).toString("base64");
+  const encodedHtml = Buffer.from(htmlToRender || "").toString("base64");
 
   return (
     <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 9999 }}>

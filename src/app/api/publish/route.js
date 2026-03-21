@@ -3,7 +3,7 @@ import { saveSite, generateSlug } from "@/lib/storage";
 
 export async function POST(request) {
   try {
-    const { htmlContent, metaTags } = await request.json();
+    const { htmlContent, previewContent, metaTags } = await request.json();
 
     if (!htmlContent) {
       return NextResponse.json(
@@ -15,13 +15,13 @@ export async function POST(request) {
     const slug = generateSlug();
     
     // Save to Supabase (keeps a record)
-    await saveSite(slug, htmlContent, metaTags || {});
+    await saveSite(slug, htmlContent, previewContent || htmlContent, metaTags || {});
 
     // Deploy to Vercel dynamically
     if (!process.env.VERCEL_TOKEN) {
       console.warn("VERCEL_TOKEN not set, fallback to local URL");
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-      return NextResponse.json({ url: `${baseUrl}/sites/${slug}`, slug: slug });
+      return NextResponse.json({ url: `${baseUrl}/sites/${slug}`, localUrl: `${baseUrl}/sites/${slug}?lang=local`, slug: slug });
     }
 
     const vercelResponse = await fetch("https://api.vercel.com/v13/deployments", {
@@ -36,6 +36,10 @@ export async function POST(request) {
           {
             file: "index.html",
             data: htmlContent
+          },
+          {
+            file: "local.html",
+            data: previewContent || htmlContent
           }
         ],
         projectSettings: {
@@ -54,6 +58,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       url: vercelUrl,
+      localUrl: `${vercelUrl}/local.html`,
       slug: slug,
     });
   } catch (error) {

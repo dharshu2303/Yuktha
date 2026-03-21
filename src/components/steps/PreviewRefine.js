@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "@/context/LanguageContext";
+import useVoiceRecognition from "@/hooks/useVoiceRecognition";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -9,17 +10,41 @@ import Spinner from "@/components/ui/Spinner";
 export default function PreviewRefine({
   previewContent,
   publishedContent,
+  previewData,
+  publishedData,
   onPublish,
   onContentUpdate,
 }) {
-  const { t, language } = useTranslation();
+  const { t, language, speechLocale } = useTranslation();
+  const { isListening, transcript, startListening, stopListening, isSupported, setTranscript } = useVoiceRecognition(speechLocale);
+  
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
+  const [selectedComponentText, setSelectedComponentText] = useState("");
   const [isRefining, setIsRefining] = useState(false);
   const [currentPreview, setCurrentPreview] = useState(previewContent);
   const [currentPublished, setCurrentPublished] = useState(publishedContent);
+  const [currentPreviewData, setCurrentPreviewData] = useState(previewData);
+  const [currentPublishedData, setCurrentPublishedData] = useState(publishedData);
   const chatEndRef = useRef(null);
   const iframeRef = useRef(null);
+
+  // Sync voice transcript to input text
+  useEffect(() => {
+    if (isListening && transcript !== undefined) {
+      setInputText(transcript);
+    }
+  }, [transcript, isListening]);
+
+  const handleVoiceToggle = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      setTranscript("");
+      setInputText("");
+      startListening();
+    }
+  };
 
   // Scroll chat to bottom
   useEffect(() => {
@@ -33,17 +58,61 @@ export default function PreviewRefine({
       if (doc) {
         doc.open();
         doc.write(currentPreview);
+        
+        // Inject script for component selection
+        const script = doc.createElement('script');
+        script.textContent = `
+          let lastOutline = null;
+          document.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const text = e.target.innerText || e.target.textContent;
+            if (text && text.trim().length > 0 && text.trim().length < 200) {
+              if (lastOutline) {
+                lastOutline.style.outline = '';
+                lastOutline.style.boxShadow = '';
+              }
+              e.target.style.outline = '2px solid #6C63FF';
+              e.target.style.boxShadow = '0 0 0 4px rgba(108, 99, 255, 0.2)';
+              e.target.style.borderRadius = '4px';
+              lastOutline = e.target;
+              
+              window.parent.postMessage({ type: 'ELEMENT_CLICKED', text: text.trim() }, '*');
+            }
+          });
+        `;
+        doc.write(script.outerHTML);
+        
         doc.close();
       }
     }
   }, [currentPreview]);
 
+  // Listen for iframe clicks
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data && event.data.type === 'ELEMENT_CLICKED') {
+        setSelectedComponentText(event.data.text);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const handleSend = async () => {
     if (!inputText.trim() || isRefining) return;
 
-    const userMessage = inputText.trim();
+    if (isListening) stopListening();
+
+    const baseMessage = inputText.trim();
+    const finalUserMessage = selectedComponentText 
+      ? `Regarding the section containing "${selectedComponentText}": ${baseMessage}`
+      : baseMessage;
+
     setInputText("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setTranscript("");
+    
+    setMessages((prev) => [...prev, { role: "user", content: baseMessage }]);
     setIsRefining(true);
 
     try {
@@ -51,8 +120,9 @@ export default function PreviewRefine({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          currentContent: currentPreview,
-          userMessage,
+          previewData: currentPreviewData,
+          publishedData: currentPublishedData,
+          userMessage: finalUserMessage,
           language,
         }),
       });
@@ -62,7 +132,15 @@ export default function PreviewRefine({
       const data = await response.json();
       setCurrentPreview(data.updatedPreviewContent);
       setCurrentPublished(data.updatedPublishedContent);
-      onContentUpdate?.(data.updatedPreviewContent, data.updatedPublishedContent);
+      setCurrentPreviewData(data.updatedPreviewData);
+      setCurrentPublishedData(data.updatedPublishedData);
+      
+      onContentUpdate?.(
+        data.updatedPreviewContent, 
+        data.updatedPublishedContent,
+        data.updatedPreviewData,
+        data.updatedPublishedData
+      );
 
       setMessages((prev) => [
         ...prev,
@@ -160,15 +238,53 @@ export default function PreviewRefine({
               <div ref={chatEndRef} />
             </div>
 
+            {/* Selected Component Chip */}
+            {selectedComponentText && (
+              <div className="px-3 pb-2 border-t border-border pt-2 bg-background-alt flex items-center justify-between">
+                <div className="flex items-center gap-2 overflow-hidden text-sm text-accent bg-accent/10 px-3 py-1.5 rounded-full max-w-full">
+                  <span className="truncate font-medium flex-1">
+                    Context: "{selectedComponentText}"
+                  </span>
+                  <button 
+                    onClick={() => setSelectedComponentText("")}
+                    className="flex-shrink-0 hover:bg-black/10 rounded-full p-0.5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Chat Input */}
             <div className="p-3 border-t border-border">
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                {isSupported && (
+                  <button
+                    onClick={handleVoiceToggle}
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      isListening
+                        ? "bg-accent text-white mic-pulse"
+                        : "bg-background-alt text-text-secondary hover:bg-accent/10 hover:text-accent"
+                    }`}
+                    title={isListening ? t("listening") : t("tapToSpeak")}
+                  >
+                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z" />
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+                      </svg>
+                  </button>
+                )}
                 <input
                   type="text"
                   value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    if (isListening) setTranscript(e.target.value);
+                  }}
                   onKeyDown={handleKeyDown}
-                  placeholder={t("refinePlaceholder")}
+                  placeholder={isListening ? t("listening") : t("refinePlaceholder")}
                   disabled={isRefining}
                   className="flex-1 bg-background-alt border border-border rounded-input px-3 py-2.5 text-sm text-text-primary placeholder:text-text-secondary/50 focus:outline-none input-focus-glow transition-all duration-200"
                 />

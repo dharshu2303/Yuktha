@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "@/context/LanguageContext";
 import StepProgress from "@/components/ui/StepProgress";
 import ErrorCard from "@/components/ui/ErrorCard";
@@ -14,12 +14,23 @@ export default function Home() {
   const { t, language } = useTranslation();
 
   // App state machine
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // Starts at 0 for splash screen
   const [cardData, setCardData] = useState({ cardImage: null, voiceText: "" });
   const [generatedContent, setGeneratedContent] = useState(null);
   const [publishedUrl, setPublishedUrl] = useState("");
+  const [localUrl, setLocalUrl] = useState("");
   const [error, setError] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  // Splash screen transition (Step 0 → 1)
+  useEffect(() => {
+    if (currentStep === 0) {
+      const timer = setTimeout(() => {
+        setCurrentStep(1);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep]);
 
   // Step 1 → 2
   const handleLanguageSelected = useCallback(() => {
@@ -46,11 +57,13 @@ export default function Home() {
   }, []);
 
   // Update content during refinement
-  const handleContentUpdate = useCallback((preview, published) => {
+  const handleContentUpdate = useCallback((preview, published, previewData, publishedData) => {
     setGeneratedContent((prev) => ({
       ...prev,
       previewContent: preview,
       publishedContent: published,
+      previewData: previewData,
+      publishedData: publishedData,
     }));
   }, []);
 
@@ -64,6 +77,7 @@ export default function Home() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             htmlContent: publishedContent,
+            previewContent: previewContent,
             metaTags: generatedContent?.metaTags || {},
           }),
         });
@@ -72,6 +86,7 @@ export default function Home() {
 
         const data = await response.json();
         setPublishedUrl(data.url);
+        setLocalUrl(data.localUrl || "");
         setCurrentStep(5);
       } catch (err) {
         setError(err.message);
@@ -88,6 +103,7 @@ export default function Home() {
     setCardData({ cardImage: null, voiceText: "" });
     setGeneratedContent(null);
     setPublishedUrl("");
+    setLocalUrl("");
     setError(null);
   }, []);
 
@@ -112,6 +128,12 @@ export default function Home() {
       )}
 
       {/* Step Components */}
+      {currentStep === 0 && (
+        <div className="fixed inset-0 bg-background z-50 flex items-center justify-center">
+          <img src="/logo.png" alt="Yuktha Logo" className="w-56 h-auto drop-shadow-2xl splash-logo" />
+        </div>
+      )}
+
       {currentStep === 1 && (
         <LanguageSelection onNext={handleLanguageSelected} />
       )}
@@ -133,6 +155,8 @@ export default function Home() {
         <PreviewRefine
           previewContent={generatedContent.previewContent}
           publishedContent={generatedContent.publishedContent}
+          previewData={generatedContent.previewData}
+          publishedData={generatedContent.publishedData}
           onPublish={handlePublish}
           onContentUpdate={handleContentUpdate}
         />
@@ -141,6 +165,7 @@ export default function Home() {
       {currentStep === 5 && (
         <PublishShare
           publishedUrl={publishedUrl}
+          localUrl={localUrl}
           onCreateAnother={handleCreateAnother}
         />
       )}
