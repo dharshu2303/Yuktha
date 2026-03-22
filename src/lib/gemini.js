@@ -105,6 +105,11 @@ Extract the following from the provided card and/or user-provided context:
 - address
 - services (list of 4-6 specific services or products)
 - tagline (a catchy 1-sentence business slogan or tagline based on the services)
+- about (a professional 2-3 sentence 'About Us' description of the business)
+- faqs (an array of exactly 3 relevant 'Frequently Asked Questions' and answers)
+- testimonials (Search your knowledge base for REAL Google reviews of this EXACT business if possible. If you find real verifiable reviews, include up to 2. If you CANNOT find real reviews for this specific business, DO NOT make up fake ones—return an empty array [] instead.)
+- theme (an object with 'name' like "dark", "elegant", "vibrant" and 'primaryColor' HEX string tailored to the business brand)
+- images (an array of exactly 3 short descriptive keywords for stock photos, e.g. "modern office", "baking pastries")
 
 ${voiceText ? `Additional business details provided by the owner: "${voiceText}"` : ""}
 
@@ -122,7 +127,12 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
     "email": "",
     "address": "",
     "services": [],
-    "tagline": ""
+    "tagline": "",
+    "about": "",
+    "faqs": [{"question": "", "answer": ""}],
+    "testimonials": [{"name": "", "text": ""}],
+    "theme": {"name": "", "primaryColor": ""},
+    "images": []
   },
   "publishedData": {
     "name": "",
@@ -132,7 +142,12 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
     "email": "",
     "address": "",
     "services": [],
-    "tagline": ""
+    "tagline": "",
+    "about": "",
+    "faqs": [{"question": "", "answer": ""}],
+    "testimonials": [{"name": "", "text": ""}],
+    "theme": {"name": "", "primaryColor": ""},
+    "images": []
   },
   "metaTags": {
     "title": "",

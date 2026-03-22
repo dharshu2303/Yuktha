@@ -66,6 +66,10 @@ export default function PreviewRefine({
           document.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            // Prevent selection of watermark or non-editable elements
+            if (e.target.closest('[data-no-edit="true"]')) return;
+            
             const text = e.target.innerText || e.target.textContent;
             if (text && text.trim().length > 0 && text.trim().length < 200) {
               if (lastOutline) {
