@@ -18,7 +18,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "About Us",
       faqTitle: "Frequently Asked Questions",
       testimonialsTitle: "What Our Clients Say",
-      galleryTitle: "Our Work"
+      galleryTitle: "Our Work",
+      home: "Home",
+      servicesNav: "Services",
+      contactNav: "Contact"
     },
     "Tamil": {
       myBusiness: "என் வணிகம்",
@@ -36,7 +39,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "எங்களை பற்றி",
       faqTitle: "அடிக்கடி கேட்கப்படும் கேள்விகள்",
       testimonialsTitle: "வாடிக்கையாளர் மதிப்புரைகள்",
-      galleryTitle: "எங்கள் படைப்புகள்"
+      galleryTitle: "எங்கள் படைப்புகள்",
+      home: "முகப்பு",
+      servicesNav: "சேவைகள்",
+      contactNav: "தொடர்பு"
     },
     "Hindi": {
       myBusiness: "मेरा व्यापार",
@@ -54,7 +60,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "हमारे बारे में",
       faqTitle: "अक्सर पूछे जाने वाले प्रश्न",
       testimonialsTitle: "ग्राहक समीक्षा",
-      galleryTitle: "हमारा काम"
+      galleryTitle: "हमारा काम",
+      home: "होम",
+      servicesNav: "सेवाएं",
+      contactNav: "संपर्क"
     },
     "Telugu": {
       myBusiness: "నా వ్యాపారం",
@@ -72,7 +81,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "మా గురించి",
       faqTitle: "తరచుగా అడిగే ప్రశ్నలు",
       testimonialsTitle: "కస్టమర్ అభిప్రాయాలు",
-      galleryTitle: "మా పని"
+      galleryTitle: "మా పని",
+      home: "హోమ్",
+      servicesNav: "సేవలు",
+      contactNav: "సంప్రదించండి"
     },
     "Malayalam": {
       myBusiness: "എന്റെ ബിസിനസ്സ്",
@@ -90,7 +102,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "ഞങ്ങളെക്കുറിച്ച്",
       faqTitle: "പതിവായി ചോദിക്കുന്ന ചോദ്യങ്ങൾ",
       testimonialsTitle: "ഉപഭോക്തൃ അഭിപ്രായങ്ങൾ",
-      galleryTitle: "ഞങ്ങളുടെ പ്രവർത്തനം"
+      galleryTitle: "ഞങ്ങളുടെ പ്രവർത്തനം",
+      home: "ഹോം",
+      servicesNav: "സേവനങ്ങൾ",
+      contactNav: "ബന്ധപ്പെടുക"
     },
     "Kannada": {
       myBusiness: "ನನ್ನ ವ್ಯಾಪಾರ",
@@ -108,7 +123,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "ನಮ್ಮ ಬಗ್ಗೆ",
       faqTitle: "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ ಪ್ರಶ್ನೆಗಳು",
       testimonialsTitle: "ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು",
-      galleryTitle: "ನಮ್ಮ ಕೆಲಸ"
+      galleryTitle: "ನಮ್ಮ ಕೆಲಸ",
+      home: "ಹೋಮ್",
+      servicesNav: "ಸೇವೆಗಳು",
+      contactNav: "ಸಂಪರ್ಕಿಸಿ"
     },
     "Bengali": {
       myBusiness: "আমার ব্যবসা",
@@ -126,7 +144,10 @@ export function buildModernTemplate(data, isPreview, langName) {
       aboutUs: "আমাদের সম্পর্কে",
       faqTitle: "সাধারণ প্রশ্ন জিজ্ঞাসা",
       testimonialsTitle: "গ্রাহক পর্যালোচনা",
-      galleryTitle: "আমাদের কাজ"
+      galleryTitle: "আমাদের কাজ",
+      home: "হোম",
+      servicesNav: "পরিষেবা",
+      contactNav: "যোগাযোগ"
     }
   };
 
@@ -141,13 +162,86 @@ export function buildModernTemplate(data, isPreview, langName) {
   const emailLink = email ? `mailto:${email}` : "#";
   const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9+]/g, '')}` : "#";
 
+  // Generate a deterministic "effect seed" from business name for unique backgrounds
+  const seed = (displayName + displayBusiness).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const effectType = seed % 4; // 0=blobs, 1=particles, 2=geometric, 3=waves
+
+  // Build background effect CSS based on effectType
+  const bgEffects = [
+    // Effect 0: Floating gradient blobs
+    `
+    .bg-effect::before, .bg-effect::after {
+      content: ''; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; filter: blur(80px); opacity: 0.10;
+    }
+    .bg-effect::before {
+      width: 500px; height: 500px; top: -100px; right: -100px;
+      background: radial-gradient(circle, var(--primary-color), transparent 70%);
+      animation: blobFloat1 20s ease-in-out infinite;
+    }
+    .bg-effect::after {
+      width: 400px; height: 400px; bottom: -50px; left: -50px;
+      background: radial-gradient(circle, #a855f7, transparent 70%);
+      animation: blobFloat2 25s ease-in-out infinite;
+    }
+    @keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-80px,60px) scale(1.15)} }
+    @keyframes blobFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,-80px) scale(1.2)} }
+    `,
+    // Effect 1: CSS dot particles
+    `
+    .bg-effect { position: relative; }
+    .bg-effect::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: radial-gradient(circle, var(--primary-color) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.04;
+      animation: particleDrift 30s linear infinite;
+    }
+    @keyframes particleDrift { 0%{background-position:0 0} 100%{background-position:40px 40px} }
+    `,
+    // Effect 2: Geometric diagonal stripes
+    `
+    .bg-effect::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.025;
+      background: repeating-linear-gradient(
+        -45deg, var(--primary-color), var(--primary-color) 1px, transparent 1px, transparent 50px
+      );
+    }
+    `,
+    // Effect 3: Animated wave at section borders
+    `
+    .bg-effect::before {
+      content: ''; position: fixed; bottom: 0; left: 0; width: 200%; height: 200px; z-index: 0; pointer-events: none; opacity: 0.04;
+      background: repeat-x url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='${encodeURIComponent(primaryBrandColor)}' d='M0,224L60,213.3C120,203,240,181,360,181.3C480,181,600,203,720,213.3C840,224,960,224,1080,208C1200,192,1320,160,1380,144L1440,128L1440,320L0,320Z'/%3E%3C/svg%3E");
+      background-size: 1440px 320px;
+      animation: waveSlide 15s linear infinite;
+    }
+    @keyframes waveSlide { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    `
+  ][effectType];
+
+  // Build nav items – only for real content sections
+  const navItems = [];
+  navItems.push({ label: tl.home, href: '#home' });
+  if (about) navItems.push({ label: tl.aboutUs, href: '#about' });
+  if (services && services.length > 0) navItems.push({ label: tl.servicesNav, href: '#services' });
+  if (phone || email || address) navItems.push({ label: tl.contactNav, href: '#contact' });
+
+  const navHTML = navItems.map(n => `<a href="${n.href}" class="nav-link">${n.label}</a>`).join('');
+
+  // Generate relevant image URLs using loremflickr (keyword-based, content-relevant)
+  const getImageUrl = (keyword, index) => {
+    const cleanKeyword = encodeURIComponent((keyword || 'business').trim().replace(/\s+/g, ','));
+    // Combine site seed with index to guarantee unique images per session per keyword
+    const lockId = Math.abs(seed + index * 137);
+    return `https://loremflickr.com/800/600/${cleanKeyword}?lock=${lockId}`;
+  };
+
   return `<!DOCTYPE html>
 <html lang="${isPreview ? 'en' : 'en'}" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${displayName} - ${displayBusiness}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"><\/script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -157,6 +251,35 @@ export function buildModernTemplate(data, isPreview, langName) {
     
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         
+        /* Sticky Navbar */
+        .site-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s ease;
+        }
+        .site-nav.scrolled { background: rgba(2, 6, 23, 0.95); box-shadow: 0 4px 30px rgba(0,0,0,0.3); }
+        .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+        .nav-brand { font-weight: 800; font-size: 1.25rem; color: white; text-decoration: none; letter-spacing: -0.02em; }
+        .nav-links { display: flex; gap: 8px; align-items: center; }
+        .nav-link {
+            color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; font-weight: 500;
+            padding: 8px 16px; border-radius: 9999px; transition: all 0.25s ease;
+        }
+        .nav-link:hover, .nav-link.active { color: white; background: rgba(255,255,255,0.1); }
+        .nav-hamburger { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        @media (max-width: 768px) {
+            .nav-hamburger { display: block; }
+            .nav-links {
+                display: none; position: absolute; top: 64px; left: 0; right: 0;
+                background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(16px);
+                flex-direction: column; padding: 16px; gap: 4px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+            }
+            .nav-links.open { display: flex; }
+            .nav-link { width: 100%; text-align: center; padding: 12px 16px; }
+        }
+
         /* Dynamic Hero Background */
         .hero-gradient {
             background: linear-gradient(-45deg, #020617, #0f172a, var(--primary-color), #0f172a);
@@ -170,7 +293,7 @@ export function buildModernTemplate(data, isPreview, langName) {
             100% { background-position: 0% 50%; }
         }
         
-        /* Premium Premium Glassmorphism */
+        /* Premium Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px);
@@ -231,30 +354,141 @@ export function buildModernTemplate(data, isPreview, langName) {
             box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
         }
 
-        /* Custom Accordion */
-        details > summary { list-style-type: none; }
-        details > summary::-webkit-details-marker { display: none; }
+        /* Accordion / FAQ */
+        .faq-item { overflow: hidden; transition: all 0.3s ease; }
+        .faq-summary {
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; cursor: pointer; padding: 20px 24px; color: #1e293b;
+            user-select: none; list-style: none;
+        }
+        .faq-summary::-webkit-details-marker { display: none; }
+        .faq-summary::marker { display: none; content: ''; }
+        .faq-chevron { transition: transform 0.3s ease; flex-shrink: 0; margin-left: 12px; }
+        details[open] .faq-chevron { transform: rotate(180deg); }
+        .faq-content {
+            padding: 0 24px 20px 24px; color: #475569; line-height: 1.7;
+            animation: faqSlideDown 0.3s ease;
+        }
+        @keyframes faqSlideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section scroll margin for fixed nav */
+        section[id] { scroll-margin-top: 72px; }
+
+        /* Unique background effects */
+        ${bgEffects}
+
+        /* 3D Card Hover Effects */
+        .service-card-3d {
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card-3d::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            background: conic-gradient(from var(--card-angle, 0deg), transparent 40%, var(--primary-color) 50%, transparent 60%);
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .service-card-3d::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: inherit;
+            background: inherit;
+            z-index: -1;
+        }
+        .service-card-3d:hover::before,
+        .service-card-3d.touch-active::before {
+            opacity: 1;
+            animation: cardGlider 2.5s linear infinite;
+        }
+        @keyframes cardGlider {
+            0% { --card-angle: 0deg; }
+            100% { --card-angle: 360deg; }
+        }
+        @property --card-angle {
+            syntax: '<angle>';
+            initial-value: 0deg;
+            inherits: false;
+        }
+        .service-card-3d:hover,
+        .service-card-3d.touch-active {
+            transform: translateY(-10px) rotateX(4deg) rotateY(4deg);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15), 0 0 30px 4px var(--primary-color);
+            border-color: transparent;
+        }
+        .service-card-3d:hover .icon-container,
+        .service-card-3d.touch-active .icon-container {
+            transform: translateZ(20px);
+            filter: drop-shadow(0 0 8px var(--primary-color));
+        }
+
+        /* Animated Hero Gradient — cycles colors smoothly */
+        @keyframes heroColorCycle {
+            0%   { filter: hue-rotate(0deg); }
+            25%  { filter: hue-rotate(45deg); }
+            50%  { filter: hue-rotate(90deg); }
+            75%  { filter: hue-rotate(45deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+        .hero-animated-gradient {
+            animation: heroColorCycle 6s ease-in-out infinite;
+        }
+
+        .glass-panel-refined {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
     </style>
 </head>
-<body class="text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-0">
+<body class="bg-effect text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-0">
+
+    <!-- Sticky Navbar -->
+    <nav class="site-nav" data-no-edit="true">
+        <div class="nav-inner">
+            <a href="#home" class="nav-brand">${displayName}</a>
+            <button class="nav-hamburger" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav-links">
+                ${navHTML}
+            </div>
+        </div>
+    </nav>
 
     <!-- Hero Section -->
-    <header class="hero-gradient text-white pt-28 pb-32 md:pt-40 md:pb-48 px-6">
-        <div class="container mx-auto max-w-5xl relative z-10">
-            <div class="glass-panel rounded-3xl p-10 md:p-16 text-center animate-fade-in-up">
-                <div class="inline-block mb-4 px-4 py-1.5 rounded-full border border-white/20 bg-white/10 text-white text-sm font-semibold tracking-wide uppercase shadow-sm">
+    <header id="home" class="hero-animated-gradient text-white min-h-[85vh] flex items-center pt-28 pb-20 px-4 overflow-hidden relative" style="background: linear-gradient(${seed % 360}deg, var(--primary-color), #6366f1, #a855f7, #4f46e5);">
+        <!-- 3D Hero Background -->
+        <div id="hero-3d-container" class="absolute inset-0 z-0 pointer-events-none opacity-70">
+            <canvas id="hero-3d-canvas" class="w-full h-full"></canvas>
+        </div>
+        
+        <div class="container mx-auto max-w-4xl relative z-10 text-center px-2">
+            <div class="glass-panel-refined rounded-[2rem] p-6 sm:p-10 md:p-14 animate-fade-in-up" style="max-width: 95vw;">
+                <div class="inline-block mb-4 px-3 py-1 rounded-full border border-white/15 bg-white/5 text-white text-[11px] sm:text-sm font-semibold tracking-wide uppercase shadow-sm">
                     ${designation ? designation : tl.professionalServices}
                 </div>
-                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-50 to-indigo-200 drop-shadow-sm">
+                <h1 class="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 sm:mb-6 tracking-tight text-white drop-shadow-md leading-tight" style="word-break: break-word; overflow-wrap: break-word;">
                     ${displayName}
                 </h1>
-                <p class="text-xl md:text-2xl text-slate-200 mb-10 font-light max-w-3xl mx-auto leading-relaxed">
+                <p class="text-sm sm:text-xl md:text-2xl text-slate-200 mb-6 sm:mb-10 font-light max-w-3xl mx-auto leading-relaxed">
                     ${displayBusiness}
-                    ${tagline ? `<br><span class="text-lg opacity-90 italic mt-3 block font-medium">"${tagline}"</span>` : ''}
+                    ${tagline ? `<br><span class="text-xs sm:text-lg opacity-90 italic mt-2 block font-medium">"${tagline}"</span>` : ''}
                 </p>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    ${phone ? `<a href="${phoneLink}" class="btn-primary text-white px-8 py-4 rounded-full font-semibold w-full sm:w-auto flex items-center justify-center gap-3"><i class="fas fa-phone-alt"></i> ${tl.getInTouch}</a>` : ''}
-                    ${email ? `<a href="${emailLink}" class="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white px-8 py-4 rounded-full font-semibold transition-all w-full sm:w-auto flex items-center justify-center gap-3"><i class="fas fa-envelope"></i> ${tl.emailUs}</a>` : ''}
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                    <a href="#contact" class="btn-primary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base"><i class="fas fa-phone-alt"></i> ${tl.getInTouch}</a>
+                    ${services && services.length > 0 ? `<a href="#services" class="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full font-semibold transition-all w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base"><i class="fas fa-briefcase"></i> ${tl.servicesNav}</a>` : ''}
                 </div>
             </div>
         </div>
@@ -263,12 +497,11 @@ export function buildModernTemplate(data, isPreview, langName) {
         <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-[#f8fafc]"></div>
     </header>
 
-    <!-- Info & Contact Grid -->
-    <section class="max-w-6xl mx-auto px-6 -mt-16 md:-mt-24 relative z-20 mb-20 animate-fade-in-up delay-100">
+    <!-- Contact Info Grid -->
+    <section id="contact" class="max-w-6xl mx-auto px-6 -mt-16 md:-mt-20 relative z-20 mb-20 animate-fade-in-up delay-100">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             ${phone ? `
             <a href="${phoneLink}" class="bento-card p-8 rounded-[2rem] shadow-lg flex flex-col items-center text-center group">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm border" style="background-color: var(--primary-color); opacity: 0.1; position: absolute;"></div>
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 relative" style="color: var(--primary-color);"><i class="fas fa-phone-alt"></i></div>
                 <h3 class="font-bold text-slate-900 text-xl mb-2">${tl.callUs}</h3>
                 <p class="text-slate-500 font-medium">${phone}</p>
@@ -276,7 +509,6 @@ export function buildModernTemplate(data, isPreview, langName) {
             
             ${email ? `
             <a href="${emailLink}" class="bento-card p-8 rounded-[2rem] shadow-lg flex flex-col items-center text-center group">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm border" style="background-color: var(--primary-color); opacity: 0.1; position: absolute;"></div>
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 relative" style="color: var(--primary-color);"><i class="fas fa-envelope-open-text"></i></div>
                 <h3 class="font-bold text-slate-900 text-xl mb-2">${tl.emailUs}</h3>
                 <p class="text-slate-500 font-medium">${email}</p>
@@ -284,13 +516,11 @@ export function buildModernTemplate(data, isPreview, langName) {
             
             ${address ? `
             <div class="bento-card p-8 rounded-[2rem] shadow-lg flex flex-col items-center text-center group">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm border" style="background-color: var(--primary-color); opacity: 0.1; position: absolute;"></div>
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 relative" style="color: var(--primary-color);"><i class="fas fa-map-marked-alt"></i></div>
                 <h3 class="font-bold text-slate-900 text-xl mb-2">${tl.location}</h3>
                 <p class="text-slate-500 font-medium">${address}</p>
             </div>` : `
             <div class="bento-card p-8 rounded-[2rem] shadow-lg flex flex-col items-center text-center group">
-                <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm border" style="background-color: var(--primary-color); opacity: 0.1; position: absolute;"></div>
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform duration-300 relative" style="color: var(--primary-color);"><i class="fas fa-star"></i></div>
                 <h3 class="font-bold text-slate-900 text-xl mb-2">${tl.premiumQuality}</h3>
                 <p class="text-slate-500 font-medium">${tl.guaranteedExp}</p>
@@ -301,17 +531,27 @@ export function buildModernTemplate(data, isPreview, langName) {
 
     <!-- About Section -->
     ${about ? `
-    <section class="py-16 bg-[#f8fafc] animate-fade-in-up delay-100">
-        <div class="container mx-auto px-6 max-w-4xl text-center">
-            <span class="font-bold uppercase tracking-wider text-sm mb-3 block" style="color: var(--primary-color);">${tl.aboutUs}</span>
-            <p class="text-xl md:text-2xl text-slate-700 leading-relaxed font-medium">"${about}"</p>
+    <section id="about" class="py-16 sm:py-20 md:py-24 bg-[#f8fafc] animate-fade-in-up delay-100 overflow-hidden">
+        <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div class="flex flex-row items-stretch gap-4 sm:gap-8 lg:gap-16">
+                <div class="w-1/2 flex flex-col justify-center">
+                    <span class="font-bold uppercase tracking-wider text-[10px] sm:text-xs mb-2 sm:mb-4 block" style="color: var(--primary-color);">${tl.aboutUs}</span>
+                    <h2 class="text-lg sm:text-3xl lg:text-5xl font-extrabold text-slate-900 mb-3 sm:mb-6 leading-tight">${tl.aboutUs}</h2>
+                    <p class="text-[11px] sm:text-base lg:text-xl text-slate-700 leading-relaxed font-medium">"${about}"</p>
+                </div>
+                <div class="w-1/2 flex items-center justify-center">
+                    <div id="about-3d-wrap" class="w-full h-[180px] sm:h-[300px] lg:h-[400px] relative">
+                        <canvas id="about-3d-canvas" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
     ` : ''}
 
     <!-- Services Section -->
     ${services && services.length > 0 ? `
-    <section class="py-24 bg-white relative overflow-hidden">
+    <section id="services" class="py-24 bg-white relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
         <div class="container mx-auto px-6 max-w-6xl relative z-10 animate-fade-in-up delay-200">
             <div class="text-center mb-16 md:mb-20">
@@ -322,9 +562,9 @@ export function buildModernTemplate(data, isPreview, langName) {
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 ${services.map(s => `
-                <div class="group bg-slate-50 hover:bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+                <div class="service-card-3d group bg-slate-50 hover:bg-white p-8 rounded-3xl border border-slate-100 transition-all duration-300 relative overflow-hidden">
                     <div class="relative z-10">
-                        <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <div class="icon-container w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center mb-6 transition-transform duration-500">
                             <i class="fas fa-check" style="color: var(--primary-color);"></i>
                         </div>
                         <h4 class="text-xl font-bold text-slate-800 leading-snug tracking-tight">${s}</h4>
@@ -338,17 +578,38 @@ export function buildModernTemplate(data, isPreview, langName) {
 
     <!-- Image Gallery Section -->
     ${images && images.length > 0 ? `
-    <section class="py-16 bg-[#f8fafc] animate-fade-in-up delay-200">
+    <section id="gallery" class="py-16 bg-[#f8fafc] animate-fade-in-up delay-200">
         <div class="container mx-auto px-6 max-w-6xl">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">${tl.galleryTitle}</h2>
                 <div class="w-12 h-1 mt-4 mx-auto rounded-full" style="background-color: var(--primary-color);"></div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                ${images.map(imgKeyword => `
-                <div class="group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-md bg-slate-100">
-                    <img src="https://source.unsplash.com/featured/800x600/?${encodeURIComponent(imgKeyword + ',professional')}" onerror="this.onerror=null; this.src='https://loremflickr.com/800/600/${encodeURIComponent(imgKeyword + ',professional')}';" alt="${imgKeyword}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" loading="lazy" />
-                    <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-500"></div>
+            <style>
+                .hide-scrollbar::-webkit-scrollbar { display: none; }
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            </style>
+            <div class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar px-4 -mx-4">
+                ${images.map((imgKeyword, idx) => `
+                <div class="flex-none w-[85vw] sm:w-[320px] snap-center group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                    <!-- Dynamic Color Gradient Picture -->
+                    <div class="w-full h-full" style="background: linear-gradient(${135 + idx * 55}deg, var(--primary-color), #fff); filter: hue-rotate(${idx * 45}deg) saturate(1.5);"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-all duration-500"></div>
+                    
+                    <!-- Decorative Element -->
+                    <div class="absolute top-4 right-4 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white/50 backdrop-blur-md group-hover:rotate-45 transition-transform duration-500">
+                        <i class="fas fa-star"></i>
+                    </div>
+
+                    <!-- Centered Content on Hover -->
+                    <div class="absolute inset-0 flex items-center justify-center translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-10 px-6 text-center">
+                         <span class="text-white text-lg font-bold tracking-wider border-2 border-white/50 px-6 py-3 rounded-full backdrop-blur-md bg-black/20 shadow-lg">${imgKeyword}</span>
+                    </div>
+
+                    <!-- Default Bottom Title -->
+                    <div class="absolute bottom-6 left-6 right-6 text-white group-hover:opacity-0 transition-opacity duration-300">
+                        <div class="w-8 h-1 bg-white mb-3 rounded-full bg-opacity-70"></div>
+                        <div class="text-2xl font-bold drop-shadow-md capitalize truncate">${imgKeyword}</div>
+                    </div>
                 </div>
                 `).join('')}
             </div>
@@ -391,14 +652,14 @@ export function buildModernTemplate(data, isPreview, langName) {
             </div>
             <div class="space-y-4">
                 ${faqs.map((faq, index) => `
-                <details class="group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden open:ring-2 open:ring-slate-100 transition-all duration-300" ${index === 0 ? 'open' : ''}>
-                    <summary class="flex justify-between items-center font-bold cursor-pointer list-none p-6 text-slate-800">
-                        <span>${faq.question}</span>
-                        <span class="transition-transform group-open:rotate-180">
+                <details class="faq-item group bg-white rounded-2xl shadow-sm border border-slate-200 transition-all duration-300 hover:shadow-md" ${index === 0 ? 'open' : ''}>
+                    <summary class="faq-summary">
+                        <span class="pr-4">${faq.question}</span>
+                        <span class="faq-chevron">
                             <i class="fas fa-chevron-down text-slate-400"></i>
                         </span>
                     </summary>
-                    <div class="text-slate-600 px-6 pb-6 leading-relaxed">
+                    <div class="faq-content">
                         ${faq.answer}
                     </div>
                 </details>
@@ -415,7 +676,7 @@ export function buildModernTemplate(data, isPreview, langName) {
             <h2 class="text-3xl font-bold text-white mb-3" style="color: var(--primary-color);">${displayName}</h2>
             <p class="mb-8 text-slate-500 text-lg">${displayBusiness}</p>
             <div class="w-full max-w-md mx-auto h-px bg-slate-800 mb-8"></div>
-            <p class="mb-6 font-medium tracking-wide">&copy; ${new Date().getFullYear()} ${tl.allRights}.</p>
+            <p class="mb-6 font-medium tracking-wide" data-no-edit="true">&copy; ${new Date().getFullYear()} ${displayName}. ${tl.allRights}.</p>
             <a href="https://yuktha-52jo1yac2-dharshinipriyaa426-3149s-projects.vercel.app" data-no-edit="true" class="inline-flex items-center gap-3 text-sm hover:text-white transition-colors bg-slate-900 border border-slate-800 px-5 py-2.5 rounded-full shadow-lg">
                 <span class="font-semibold tracking-wide">${tl.generatedBy}</span>
             </a>
@@ -427,6 +688,150 @@ export function buildModernTemplate(data, isPreview, langName) {
     <a href="${waLink}" target="_blank" aria-label="Chat on WhatsApp" class="fixed bottom-6 right-6 bg-[#25D366] text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-[0_10px_25px_-5px_rgba(37,211,102,0.5)] hover:bg-[#128C7E] transition-all hover:scale-110 hover:shadow-[0_15px_35px_-5px_rgba(37,211,102,0.6)] z-50 animate-fade-in-up delay-300">
         <i class="fab fa-whatsapp"></i>
     </a>` : ''}
+
+
+    <!-- Three.js for 3D Components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
+    <script>
+        (function() {
+            const seed = ${seed};
+            
+            function createScene(canvasId, geometryType) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                const parent = canvas.parentElement;
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, parent.clientWidth / parent.clientHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(parent.clientWidth, parent.clientHeight);
+
+                let geometry;
+                switch(geometryType) {
+                    case 0: geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16); break;
+                    case 1: geometry = new THREE.IcosahedronGeometry(12, 1); break;
+                    case 2: geometry = new THREE.OctahedronGeometry(12, 2); break;
+                    case 3: geometry = new THREE.SphereGeometry(12, 32, 32); break;
+                    default: geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+                }
+
+                const material = new THREE.MeshNormalMaterial({ 
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                scene.add(mesh);
+
+                // Add a ring if it's the hero or special
+                if (canvasId === 'hero-3d-canvas') {
+                    const ringGeo = new THREE.TorusGeometry(18, 0.5, 16, 100);
+                    const ringMat = new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.4 });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 2;
+                    scene.add(ring);
+                    mesh.userData.ring = ring;
+                }
+
+                camera.position.z = 35;
+
+                let mouseX = 0, mouseY = 0;
+                let isActive = false;
+                
+                // Find the closest section/header ancestor
+                const section = parent.closest('section, header') || parent;
+                
+                section.addEventListener('mouseenter', () => { isActive = true; });
+                section.addEventListener('mouseleave', () => { isActive = false; mouseX = 0; mouseY = 0; });
+                section.addEventListener('mousemove', (e) => {
+                    if (!isActive) return;
+                    const rect = canvas.getBoundingClientRect();
+                    mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+                    mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+                });
+                section.addEventListener('touchmove', (e) => {
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    mouseX = ((touch.clientX - rect.left) / rect.width - 0.5) * 2;
+                    mouseY = ((touch.clientY - rect.top) / rect.height - 0.5) * 2;
+                }, { passive: true });
+                section.addEventListener('touchend', () => { mouseX = 0; mouseY = 0; }, { passive: true });
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    mesh.rotation.x += 0.005;
+                    mesh.rotation.y += 0.005;
+                    
+                    if (mesh.userData.ring) {
+                        mesh.userData.ring.rotation.z += 0.002;
+                        mesh.userData.ring.rotation.x += mouseX * 0.01;
+                    }
+                    
+                    mesh.position.x += (mouseX * 5 - mesh.position.x) * 0.05;
+                    mesh.position.y += (-mouseY * 5 - mesh.position.y) * 0.05;
+
+                    renderer.render(scene, camera);
+                }
+
+                window.addEventListener('resize', () => {
+                    camera.aspect = parent.clientWidth / parent.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(parent.clientWidth, parent.clientHeight);
+                });
+
+                animate();
+            }
+
+            createScene('hero-3d-canvas', 0); // Always use TorusKnot for Hero
+            createScene('about-3d-canvas', (seed + 1) % 4);
+        })();
+
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('.site-nav');
+            if (nav) nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-link').forEach(l => l.addEventListener('click', () => {
+            document.querySelector('.nav-links')?.classList.remove('open');
+        }));
+
+        // Touch sensitivity for service cards (mobile-friendly)
+        document.querySelectorAll('.service-card-3d').forEach(card => {
+            card.addEventListener('touchstart', function(e) {
+                this.classList.add('touch-active');
+            }, { passive: true });
+            card.addEventListener('touchend', function(e) {
+                setTimeout(() => this.classList.remove('touch-active'), 1500);
+            }, { passive: true });
+        });
+
+        // Touch sensitivity for 3D canvas (About section)
+        const aboutWrap = document.getElementById('about-3d-wrap');
+        if (aboutWrap) {
+            aboutWrap.addEventListener('touchmove', function(e) {
+                const touch = e.touches[0];
+                const rect = this.getBoundingClientRect();
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                document.dispatchEvent(mouseEvent);
+            }, { passive: true });
+        }
+
+        // Auto-scroll gradient carousel
+        const carousel = document.querySelector('.snap-x');
+        if (carousel) {
+            let scrollPos = 0;
+            setInterval(() => {
+                const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+                scrollPos += carousel.clientWidth > 400 ? 344 : window.innerWidth * 0.85; // card width + gap
+                if (scrollPos > maxScroll + 10) scrollPos = 0;
+                carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
+            }, 2000);
+        }
+    </script>
 
 </body>
 </html>`;

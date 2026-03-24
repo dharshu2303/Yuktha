@@ -25,9 +25,9 @@ function professional(data) {
     .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
     
     /* Header */
-    .header { background: #1A1A2E; color: white; padding: 60px 20px; text-align: center; }
-    .header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
-    .header p { font-size: 1rem; opacity: 0.8; font-weight: 400; }
+    .header { background: #1A1A2E; color: white; padding: 60px 20px; text-align: center; position: relative; overflow: hidden; }
+    .header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; position: relative; z-index: 10; }
+    .header p { font-size: 1rem; opacity: 0.8; font-weight: 400; position: relative; z-index: 10; }
     
     /* Section */
     .section { padding: 48px 20px; }
@@ -60,21 +60,27 @@ function professional(data) {
     /* Footer */
     .footer { text-align: center; padding: 24px; border-top: 1px solid #E2E8F0; }
     .footer a { color: #6C63FF; text-decoration: none; font-size: 0.8rem; font-weight: 500; }
+  <style>
+    @keyframes heroColorCycle { 0% { filter: hue-rotate(0deg); } 25% { filter: hue-rotate(45deg); } 50% { filter: hue-rotate(90deg); } 75% { filter: hue-rotate(45deg); } 100% { filter: hue-rotate(0deg); } }
   </style>
-</head>
-<body>
-  <header class="header">
-    <div class="container">
-      <h1>${data.name || 'Business Name'}</h1>
+  <header class="header" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 400px; background: linear-gradient(${(data.name || 'Bus').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}deg, var(--primary-color), #6366f1, #a855f7, #4f46e5); animation: heroColorCycle 6s ease-in-out infinite;">
+    <div id="hero-3d-container" style="position: absolute; inset: 0; z-index: 0; opacity: 0.5;"></div>
+    <div class="container" style="position: relative; z-index: 10;">
+      <h1 style="word-break: break-word; overflow-wrap: break-word;">${data.name || 'Business Name'}</h1>
       <p>${data.designation || data.business || 'Professional Services'}</p>
     </div>
   </header>
 
   ${data.about ? `
   <section class="section">
-    <div class="container">
-      <h2 class="section-title">About</h2>
-      <p>${data.about}</p>
+    <div class="container" style="display: flex; flex-direction: row; align-items: stretch; gap: 20px;">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h2 class="section-title" style="font-size: clamp(1rem, 5vw, 1.5rem); text-align: left;">About</h2>
+        <p style="font-size: clamp(0.75rem, 3vw, 1rem);">${data.about}</p>
+      </div>
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div id="about-3d-container" style="width: 100%; height: clamp(150px, 40vh, 250px); position: relative;"></div>
+      </div>
     </div>
   </section>
   ` : ''}
@@ -131,6 +137,54 @@ function professional(data) {
   <a href="https://wa.me/${data.phone.replace(/[^0-9]/g, '')}" class="whatsapp-float" target="_blank" aria-label="Contact on WhatsApp">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>` : ''}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    (function() {
+      const name = "${data.name || 'Business'}";
+      const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+      function create3D(containerId, typeIndex) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const canvas = document.createElement('canvas');
+        canvas.style.width = '100%'; canvas.style.height = '100%';
+        container.appendChild(canvas);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+
+        let geometry;
+        const types = [
+          new THREE.TorusKnotGeometry(10, 3, 100, 16),
+          new THREE.IcosahedronGeometry(12, 1),
+          new THREE.OctahedronGeometry(12, 2),
+          new THREE.TorusGeometry(12, 4, 16, 100)
+        ];
+        geometry = types[typeIndex % types.length];
+        
+        const material = new THREE.MeshNormalMaterial({ wireframe: true, transparent: true, opacity: 0.6 });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        camera.position.z = 30;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          mesh.rotation.x += 0.01; mesh.rotation.y += 0.01;
+          renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+          renderer.setSize(container.offsetWidth, container.offsetHeight);
+          camera.aspect = container.offsetWidth / container.offsetHeight;
+          camera.updateProjectionMatrix();
+        });
+      }
+      create3D('hero-3d-container', 0); // Always TorusKnot for Hero
+      create3D('about-3d-container', seed + 1);
+    })();
+  </script>
 </body>
 </html>`;
 }
@@ -151,9 +205,9 @@ function shop(data) {
     .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
     
     /* Hero */
-    .hero { background: linear-gradient(135deg, #1A1A2E 0%, #2D2B55 100%); color: white; padding: 80px 20px; text-align: center; }
-    .hero h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
-    .hero p { font-size: 1.1rem; opacity: 0.85; }
+    .hero { background: linear-gradient(135deg, #1A1A2E 0%, #2D2B55 100%); color: white; padding: 80px 20px; text-align: center; position: relative; overflow: hidden; }
+    .hero h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; position: relative; z-index: 10; }
+    .hero p { font-size: 1.1rem; opacity: 0.85; position: relative; z-index: 10; }
     
     .section { padding: 48px 20px; }
     .section:nth-child(even) { background: #F8F9FA; }
@@ -191,12 +245,30 @@ function shop(data) {
   </style>
 </head>
 <body>
-  <div class="hero">
-    <div class="container">
-      <h1>${data.name || 'Shop Name'}</h1>
+  <style>
+    @keyframes heroColorCycle { 0% { filter: hue-rotate(0deg); } 25% { filter: hue-rotate(45deg); } 50% { filter: hue-rotate(90deg); } 75% { filter: hue-rotate(45deg); } 100% { filter: hue-rotate(0deg); } }
+  </style>
+  <div class="hero" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 400px; background: linear-gradient(${(data.name || 'Shop').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}deg, var(--primary-color), #6366f1, #a855f7, #4f46e5); animation: heroColorCycle 6s ease-in-out infinite;">
+    <div id="shop-hero-3d" style="position: absolute; inset: 0; z-index: 0; opacity: 0.4;"></div>
+    <div class="container" style="position: relative; z-index: 10;">
+      <h1 style="word-break: break-word; overflow-wrap: break-word;">${data.name || 'Shop Name'}</h1>
       <p>${data.tagline || data.business || 'Your one-stop shop'}</p>
     </div>
   </div>
+
+  ${data.about ? `
+  <section class="section">
+    <div class="container" style="display: flex; flex-direction: row; align-items: stretch; gap: 20px;">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div id="shop-about-3d" style="width: 100%; height: clamp(150px, 40vh, 250px); position: relative;"></div>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h2 class="section-title" style="font-size: clamp(1rem, 5vw, 1.5rem); text-align: left;">About Us</h2>
+        <p style="font-size: clamp(0.75rem, 3vw, 1rem);">${data.about}</p>
+      </div>
+    </div>
+  </section>
+  ` : ''}
 
   ${data.services?.length ? `
   <section class="section">
@@ -252,6 +324,61 @@ function shop(data) {
   <a href="https://wa.me/${data.phone.replace(/[^0-9]/g, '')}" class="whatsapp-float" target="_blank" aria-label="Order on WhatsApp">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>` : ''}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    (function() {
+      const name = "${data.name || 'Shop'}";
+      const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+      function create3D(containerId, isHero, forceKnot) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const canvas = document.createElement('canvas');
+        canvas.style.width = '100%'; canvas.style.height = '100%';
+        container.appendChild(canvas);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+
+        const group = new THREE.Group();
+        if (forceKnot) {
+          const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+          const material = new THREE.MeshNormalMaterial({ wireframe: true, transparent: true, opacity: 0.6 });
+          group.add(new THREE.Mesh(geometry, material));
+        } else if ((seed + (isHero?0:1)) % 2 === 0) {
+          for(let i=0; i<8; i++) {
+            const geometry = new THREE.SphereGeometry(Math.random() * 2, 32, 32);
+            const material = new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.6 });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(Math.random()*20-10, Math.random()*20-10, Math.random()*20-10);
+            group.add(sphere);
+          }
+        } else {
+          const geometry = new THREE.OctahedronGeometry(12, 1);
+          const material = new THREE.MeshNormalMaterial({ wireframe: true, transparent: true, opacity: 0.6 });
+          group.add(new THREE.Mesh(geometry, material));
+        }
+        scene.add(group);
+        camera.position.z = 25;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          group.rotation.x += 0.005; group.rotation.y += 0.005;
+          renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+          renderer.setSize(container.offsetWidth, container.offsetHeight);
+          camera.aspect = container.offsetWidth / container.offsetHeight;
+          camera.updateProjectionMatrix();
+        });
+      }
+      create3D('shop-hero-3d', true, true); // true, true means hero and force knot
+      create3D('shop-about-3d', false, false);
+    })();
+  </script>
 </body>
 </html>`;
 }
@@ -272,9 +399,9 @@ function creative(data) {
     .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
     
     /* Hero */
-    .hero { min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 80px 20px; background: #F8F9FA; }
-    .hero h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 12px; background: linear-gradient(135deg, #1A1A2E, #6C63FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero p { font-size: 1.1rem; color: #64748B; max-width: 500px; margin: 0 auto; }
+    .hero { min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 80px 20px; background: #F8F9FA; position: relative; overflow: hidden; }
+    .hero h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 12px; background: linear-gradient(135deg, #1A1A2E, #6C63FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; z-index: 10; }
+    .hero p { font-size: 1.1rem; color: #64748B; max-width: 500px; margin: 0 auto; position: relative; z-index: 10; }
     
     .section { padding: 48px 20px; }
     .section:nth-child(even) { background: #F8F9FA; }
@@ -308,12 +435,30 @@ function creative(data) {
   </style>
 </head>
 <body>
-  <div class="hero">
-    <div>
-      <h1>${data.name || 'Creative Professional'}</h1>
+  <style>
+    @keyframes heroColorCycle { 0% { filter: hue-rotate(0deg); } 25% { filter: hue-rotate(45deg); } 50% { filter: hue-rotate(90deg); } 75% { filter: hue-rotate(45deg); } 100% { filter: hue-rotate(0deg); } }
+  </style>
+  <div class="hero" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 450px; background: linear-gradient(${(data.name || 'Cre').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360}deg, var(--primary-color), #6366f1, #a855f7, #4f46e5); animation: heroColorCycle 6s ease-in-out infinite;">
+    <div id="creative-hero-3d" style="position: absolute; inset: 0; z-index: 0; opacity: 0.5;"></div>
+    <div class="container" style="position: relative; z-index: 10;">
+      <h1 style="word-break: break-word; overflow-wrap: break-word;">${data.name || 'Creative Professional'}</h1>
       <p>${data.tagline || data.business || 'Creating beautiful things'}</p>
     </div>
   </div>
+
+  ${data.about ? `
+  <section class="section" style="background: white;">
+    <div class="container" style="display: flex; flex-direction: row; align-items: stretch; gap: 20px;">
+      <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+        <div id="creative-about-3d" style="width: 100%; height: clamp(200px, 45vh, 300px); position: relative;"></div>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+        <h2 class="section-title" style="font-size: clamp(1rem, 5vw, 1.5rem); text-align: left;">Vision</h2>
+        <p style="font-size: clamp(0.75rem, 3vw, 1rem);">${data.about}</p>
+      </div>
+    </div>
+  </section>
+  ` : ''}
 
   ${data.portfolio?.length ? `
   <section class="section">
@@ -361,6 +506,54 @@ function creative(data) {
   <a href="https://wa.me/${data.phone.replace(/[^0-9]/g, '')}" class="whatsapp-float" target="_blank" aria-label="Contact on WhatsApp">
     <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>` : ''}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    (function() {
+      const name = "${data.name || 'Creative'}";
+      const seed = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+      function create3D(containerId, typeIndex) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const canvas = document.createElement('canvas');
+        canvas.style.width = '100%'; canvas.style.height = '100%';
+        container.appendChild(canvas);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(container.offsetWidth, container.offsetHeight);
+
+        let geometry;
+        const types = [
+          new THREE.IcosahedronGeometry(12, 1),
+          new THREE.TorusKnotGeometry(10, 3, 100, 16),
+          new THREE.ConeGeometry(10, 20, 32),
+          new THREE.DodecahedronGeometry(12, 0)
+        ];
+        geometry = types[typeIndex % types.length];
+        
+        const material = new THREE.MeshNormalMaterial({ wireframe: true, transparent: true, opacity: 0.6 });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        camera.position.z = 30;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          mesh.rotation.x += 0.01; mesh.rotation.y += 0.01;
+          renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+          renderer.setSize(container.offsetWidth, container.offsetHeight);
+          camera.aspect = container.offsetWidth / container.offsetHeight;
+          camera.updateProjectionMatrix();
+        });
+      }
+      create3D('creative-hero-3d', 1); // Knot index (1 in Creative types is Knot)
+      create3D('creative-about-3d', seed + 1);
+    })();
+  </script>
 </body>
 </html>`;
 }

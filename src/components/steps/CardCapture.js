@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useTranslation } from "@/context/LanguageContext";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -12,8 +12,12 @@ export default function CardCapture({ onNext }) {
   const [cardPreview, setCardPreview] = useState(null);
   const [voiceText, setVoiceText] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  
   const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
   const handleFile = useCallback((file) => {
     if (!file || !file.type.startsWith("image/")) return;
@@ -53,6 +57,64 @@ export default function CardCapture({ onNext }) {
     [handleFile]
   );
 
+  // --- Camera Logic ---
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment" } 
+      });
+      streamRef.current = stream;
+      setIsCameraActive(true);
+    } catch (err) {
+      console.error("Camera access denied or unavailable", err);
+      // Fallback to file picker if camera fails
+      fileInputRef.current?.click();
+    }
+  };
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isCameraActive]);
+
+  // Clean up stream on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
+
+  const captureImage = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw the current video frame onto the canvas
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Get the base64 image data (using JPEG for smaller size)
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+    
+    setCardPreview(dataUrl);
+    setCardImage(dataUrl);
+    stopCamera();
+  };
+
   const handleGenerate = () => {
     if (!cardImage && !voiceText.trim()) return;
     onNext({ cardImage, voiceText });
@@ -67,6 +129,42 @@ export default function CardCapture({ onNext }) {
             {t("step2Title")}
           </h2>
         </div>
+
+        {/* Camera Modal/Overlay */}
+        {isCameraActive && (
+          <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4">
+            <div className="relative w-full max-w-lg bg-black rounded-2xl overflow-hidden border border-border/20 shadow-2xl">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                muted
+                className="w-full h-auto max-h-[70vh] object-contain"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+              
+              {/* Camera Overlays */}
+              <div className="absolute inset-0 pointer-events-none border-4 border-accent/30 m-4 rounded-xl"></div>
+              
+              {/* Controls */}
+              <div className="absolute bottom-0 inset-x-0 p-6 flex items-center justify-between bg-gradient-to-t from-black/80 to-transparent">
+                <button 
+                  onClick={stopCamera}
+                  className="px-4 py-2 text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={captureImage}
+                  className="w-16 h-16 rounded-full bg-white border-4 border-accent hover:scale-105 active:scale-95 transition-all outline-none ring-4 ring-black/50"
+                  aria-label="Take photo"
+                ></button>
+                <div className="w-16"></div> {/* Spacer for centering */}
+              </div>
+            </div>
+            <p className="text-white/70 mt-4 text-sm font-medium">Position the card within the frame</p>
+          </div>
+        )}
 
         {/* Upload Options */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -103,7 +201,7 @@ export default function CardCapture({ onNext }) {
           <Card
             className="p-6 cursor-pointer"
             hover
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={startCamera}
           >
             <div className="flex flex-col items-center justify-center py-8">
               <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
@@ -114,19 +212,13 @@ export default function CardCapture({ onNext }) {
               </div>
               <span className="font-semibold text-text-primary text-sm">{t("useCamera")}</span>
             </div>
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileInput}
-            />
+            {/* The hidden input is no longer used for the camera button itself, 
+                as we use navigator.mediaDevices.getUserMedia now. */}
           </Card>
         </div>
 
         {/* Image Preview */}
-        {cardPreview && (
+        {cardPreview && !isCameraActive && (
           <Card className="mb-6 p-4 animate-fade-in">
             <div className="relative rounded-xl overflow-hidden">
               <img

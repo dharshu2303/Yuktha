@@ -32,6 +32,7 @@ export async function POST(request) {
       },
       body: JSON.stringify({
         name: `yuktha-site-${slug}`,
+        target: "production",
         files: [
           {
             file: "index.html",
@@ -55,6 +56,25 @@ export async function POST(request) {
 
     const vercelData = await vercelResponse.json();
     const vercelUrl = `https://${vercelData.url}`;
+
+    // Disable Vercel Authentication on this project so anyone can view it
+    const projectId = vercelData.projectId;
+    if (projectId) {
+      try {
+        await fetch(`https://api.vercel.com/v9/projects/${projectId}`, {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${process.env.VERCEL_TOKEN}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ssoProtection: null
+          })
+        });
+      } catch (e) {
+        console.warn("Could not disable deployment protection:", e.message);
+      }
+    }
 
     return NextResponse.json({
       url: vercelUrl,

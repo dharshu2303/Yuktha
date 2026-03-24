@@ -1,11 +1,11 @@
 import { buildModernTemplate } from './src/lib/templateEngine.js';
 
 const html = buildModernTemplate({
-  name: "John Doe",
+  name: "Yukdha",
   business: "Acme Corp",
   designation: "CEO",
   phone: "+123456789",
-  email: "john@acme.com",
+  email: "yukdha@acme.com",
   address: "123 Main St",
   services: ["Web Design", "SEO"],
   tagline: "We build the web"

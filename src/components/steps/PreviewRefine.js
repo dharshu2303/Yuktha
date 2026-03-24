@@ -26,6 +26,7 @@ export default function PreviewRefine({
   const [currentPublished, setCurrentPublished] = useState(publishedContent);
   const [currentPreviewData, setCurrentPreviewData] = useState(previewData);
   const [currentPublishedData, setCurrentPublishedData] = useState(publishedData);
+  const [editMode, setEditMode] = useState(false);
   const chatEndRef = useRef(null);
   const iframeRef = useRef(null);
 
@@ -51,48 +52,52 @@ export default function PreviewRefine({
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Update iframe
+  // Update iframe — inject edit mode script only when edit mode is ON
   useEffect(() => {
     if (iframeRef.current) {
       const doc = iframeRef.current.contentDocument;
       if (doc) {
         doc.open();
         doc.write(currentPreview);
-        
-        // Inject script for component selection
-        const script = doc.createElement('script');
-        script.textContent = `
-          let lastOutline = null;
-          document.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            // Prevent selection of watermark or non-editable elements
-            if (e.target.closest('[data-no-edit="true"]')) return;
-            
-            const text = e.target.innerText || e.target.textContent;
-            if (text && text.trim().length > 0 && text.trim().length < 200) {
-              if (lastOutline) {
-                lastOutline.style.outline = '';
-                lastOutline.style.boxShadow = '';
-              }
-              e.target.style.outline = '2px solid #6C63FF';
-              e.target.style.boxShadow = '0 0 0 4px rgba(108, 99, 255, 0.2)';
-              e.target.style.borderRadius = '4px';
-              lastOutline = e.target;
-              
-              window.parent.postMessage({ type: 'ELEMENT_CLICKED', text: text.trim() }, '*');
-            }
-          });
-        `;
-        doc.write(script.outerHTML);
-        
         doc.close();
+        
+        if (editMode) {
+          // Inject script AFTER doc.close() using appendChild for reliable multi-edit support
+          const script = doc.createElement('script');
+          script.textContent = `
+            (function() {
+              let lastOutline = null;
+              document.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Prevent selection of watermark, copyright, or non-editable elements
+                if (e.target.closest('[data-no-edit="true"]')) return;
+                
+                const text = e.target.innerText || e.target.textContent;
+                if (text && text.trim().length > 0 && text.trim().length < 200) {
+                  if (lastOutline) {
+                    lastOutline.style.outline = '';
+                    lastOutline.style.boxShadow = '';
+                  }
+                  e.target.style.outline = '2px solid #6C63FF';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(108, 99, 255, 0.2)';
+                  e.target.style.borderRadius = '4px';
+                  lastOutline = e.target;
+                  
+                  window.parent.postMessage({ type: 'ELEMENT_CLICKED', text: text.trim() }, '*');
+                }
+              });
+            })();
+          `;
+          doc.body.appendChild(script);
+        }
+        // In browse mode: no script injected → links, CTA, navbar all work normally
       }
     }
-  }, [currentPreview]);
+  }, [currentPreview, editMode]);
 
-  // Listen for iframe clicks
+  // Listen for iframe clicks (edit mode only)
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data && event.data.type === 'ELEMENT_CLICKED') {
@@ -134,11 +139,14 @@ export default function PreviewRefine({
       if (!response.ok) throw new Error("Refine failed");
 
       const data = await response.json();
+      
+      // Live update — immediately set new preview content to trigger iframe re-render
       setCurrentPreview(data.updatedPreviewContent);
       setCurrentPublished(data.updatedPublishedContent);
       setCurrentPreviewData(data.updatedPreviewData);
       setCurrentPublishedData(data.updatedPublishedData);
       
+      // Propagate updates to parent for publish
       onContentUpdate?.(
         data.updatedPreviewContent, 
         data.updatedPublishedContent,
@@ -150,6 +158,9 @@ export default function PreviewRefine({
         ...prev,
         { role: "ai", content: data.aiMessage || "✓" },
       ]);
+      
+      // Clear selected component after successful edit
+      setSelectedComponentText("");
     } catch (error) {
       console.error("Refine error:", error);
       setMessages((prev) => [
@@ -185,13 +196,37 @@ export default function PreviewRefine({
         {/* Split View */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Preview (3/5) */}
-          <Card className="lg:col-span-3 overflow-hidden">
-            <div className="p-3 border-b border-border">
+          <Card className="lg:col-span-3 overflow-hidden relative">
+            <div className="p-3 border-b border-border flex items-center justify-between">
               <span className="text-[11px] font-medium uppercase tracking-label text-text-secondary">
                 {t("previewLabel")}
               </span>
+              {/* Edit Mode Toggle */}
+              <button
+                onClick={() => {
+                  setEditMode(!editMode);
+                  if (editMode) setSelectedComponentText("");
+                }}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+                  editMode
+                    ? "bg-accent text-white shadow-md"
+                    : "bg-background-alt text-text-secondary hover:bg-accent/10 hover:text-accent border border-border"
+                }`}
+                title={editMode ? "Switch to Browse Mode" : "Switch to Edit Mode"}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                {editMode ? "Editing" : "Edit"}
+              </button>
             </div>
-            <div className="bg-background-alt">
+            <div className="bg-background-alt relative">
+              {/* Edit mode indicator overlay */}
+              {editMode && (
+                <div className="absolute top-2 left-2 right-2 z-10 bg-accent/90 text-white text-xs text-center py-1.5 px-3 rounded-lg font-medium shadow-md backdrop-blur-sm">
+                  ✏️ Click any text to select it for editing
+                </div>
+              )}
               <iframe
                 ref={iframeRef}
                 title="Website Preview"
@@ -247,7 +282,7 @@ export default function PreviewRefine({
               <div className="px-3 pb-2 border-t border-border pt-2 bg-background-alt flex items-center justify-between">
                 <div className="flex items-center gap-2 overflow-hidden text-sm text-accent bg-accent/10 px-3 py-1.5 rounded-full max-w-full">
                   <span className="truncate font-medium flex-1">
-                    Context: "{selectedComponentText}"
+                    Context: &quot;{selectedComponentText}&quot;
                   </span>
                   <button 
                     onClick={() => setSelectedComponentText("")}

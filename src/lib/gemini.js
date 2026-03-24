@@ -94,10 +94,10 @@ export async function generateFromCard(imageBase64, voiceText, language) {
 
 
 
-  const prompt = `You are an expert data extractor. Generate business details based on the provided inputs.
+  const prompt = `You are an expert data extractor and business analyst. Generate business details based on the provided inputs.
 
 Extract the following from the provided card and/or user-provided context:
-- name (person or business name)
+- name: CRITICAL — Look for the LARGEST and MOST PROMINENT text in the center or top of the card that represents the main shop/company title (e.g., "SVNL Events"). Do NOT extract small corner text like authorizer names (e.g., "M. Yogi") as the main business name.
 - business (type of business)
 - designation (job title if any)
 - phone (with country code if visible)
@@ -106,10 +106,10 @@ Extract the following from the provided card and/or user-provided context:
 - services (list of 4-6 specific services or products)
 - tagline (a catchy 1-sentence business slogan or tagline based on the services)
 - about (a professional 2-3 sentence 'About Us' description of the business)
-- faqs (an array of exactly 3 relevant 'Frequently Asked Questions' and answers)
-- testimonials (Search your knowledge base for REAL Google reviews of this EXACT business if possible. If you find real verifiable reviews, include up to 2. If you CANNOT find real reviews for this specific business, DO NOT make up fake ones—return an empty array [] instead.)
-- theme (an object with 'name' like "dark", "elegant", "vibrant" and 'primaryColor' HEX string tailored to the business brand)
-- images (an array of exactly 3 short descriptive keywords for stock photos, e.g. "modern office", "baking pastries")
+- faqs (an array of exactly 3 relevant 'Frequently Asked Questions' with detailed answers)
+- testimonials: CRITICAL — Search your training data for REAL reviews of this EXACT business from JustDial (justdial.com), Google Maps, or Google Business. Match by business name AND city/area. If you find real verifiable reviews from JustDial or Google, include up to 2 with the exact reviewer name and review text. If you CANNOT find real reviews for this specific business, return an EMPTY ARRAY []. DO NOT fabricate or generate fake reviews under any circumstances.
+- theme (an object with 'name' like "dark", "elegant", "vibrant" and 'primaryColor' HEX string tailored to the business brand — choose a color that matches the business industry)
+- images: CRITICAL — Provide an array of exactly 3 HIGHLY SPECIFIC keywords describing visually the core services or products (e.g., if it's "SVNL Events", use "wedding decorations", "corporate event stage", "catering buffet"). Do NOT use generic terms like "business", "professional", or the company name itself. These keywords will fetch related stock photos.
 
 ${voiceText ? `Additional business details provided by the owner: "${voiceText}"` : ""}
 
@@ -220,7 +220,7 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
 export async function refineContent(previewData, publishedData, userMessage, language) {
   const langName = LANGUAGE_NAMES[language] || "English";
 
-  const prompt = `You are a web developer. The user wants to modify their website. 
+  const prompt = `You are a precise web developer assistant. The user wants to modify their business website. Read their instruction carefully and make EXACTLY the changes they ask for — nothing more, nothing less.
 
 Current website data (for preview in ${langName}):
 ${JSON.stringify(previewData, null, 2)}
@@ -228,12 +228,16 @@ ${JSON.stringify(previewData, null, 2)}
 Current website data (for publication in English):
 ${JSON.stringify(publishedData, null, 2)}
 
-User's instruction (in ${langName}):
+User's instruction:
 "${userMessage}"
 
-Apply the requested changes to BOTH data objects. CRITICAL REQUIREMENT: Ensure the updatedPreviewData remains 100% in ${langName} without a single English word by any chance. The updatedPublishedData must remain in professional English.
-
-Also provide a brief confirmation message in ${langName} describing what you changed.
+IMPORTANT RULES:
+1. Apply the requested changes to BOTH data objects (preview + published).
+2. Keep ALL unchanged fields exactly as they are — do not modify, rewrite, or rephrase anything the user didn't ask to change.
+3. If the user asks to change specific text like a tagline, service name, or about section, update ONLY that specific field.
+4. If the user asks to add something, add it without removing existing content.
+5. Ensure updatedPreviewData remains 100% in ${langName}. The updatedPublishedData must remain in professional English.
+6. Provide a brief, friendly confirmation message in ${langName} that specifically describes what you changed (e.g., "I updated your tagline to...").
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):
 {
