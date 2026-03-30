@@ -848,6 +848,48 @@ export function buildModernTemplate(data, isPreview, langName) {
                 carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
             }, 2000);
         }
+        });
+        
+        // Right click restriction with visual feedback
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            let toast = document.getElementById('rc-disabled-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'rc-disabled-toast';
+                toast.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i> <b style="letter-spacing: -0.01em;">Right Click Disabled</b>';
+                Object.assign(toast.style, {
+                    position: 'fixed',
+                    bottom: '32px',
+                    left: '50%',
+                    transform: 'translateX(-50%) translateY(100px)',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    padding: '14px 28px',
+                    borderRadius: '9999px',
+                    boxShadow: '0 20px 50px -12px rgba(239, 68, 68, 0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    zIndex: '999999',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    fontSize: '15px',
+                    transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                    pointerEvents: 'none',
+                    border: '1px solid rgba(255,255,255,0.2)'
+                });
+                document.body.appendChild(toast);
+            }
+            
+            // Show
+            setTimeout(() => { toast.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
+            
+            // Hide after 2 seconds
+            clearTimeout(window.rcToastTimer);
+            window.rcToastTimer = setTimeout(() => {
+                toast.style.transform = 'translateX(-50%) translateY(100px)';
+            }, 2500);
+        });
     </script>
 
 </body>
