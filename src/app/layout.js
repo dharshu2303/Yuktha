@@ -35,7 +35,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased`} onContextMenu={(e) => e.preventDefault()}>
         {/* Animated Background Orbs */}
         <div className="animated-bg" aria-hidden="true">
           <div className="orb orb-1" />

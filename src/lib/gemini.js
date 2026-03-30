@@ -114,7 +114,7 @@ Extract the following from the provided card and/or user-provided context:
 ${voiceText ? `Additional business details provided by the owner: "${voiceText}"` : ""}
 
 Generate two versions of this data:
-1. previewData: All fields completely translated into ${langName} for the user. CRITICAL REQUIREMENT: The previewData MUST be 100% in ${langName} without a single English word by any chance. If the provided card or context is in a language different from ${langName} (e.g., Tamil but requested ${langName} is Malayalam), you MUST translate all extracted content from the source language into ${langName}. Translate every business term, service, and tagline strictly to ${langName}.
+1. previewData: All fields completely translated into ${langName} for the user. CRITICAL REQUIREMENT: The previewData MUST be 100% in ${langName} without a single English word (except for proper names with no translation). You MUST translate every business term, service, tagline, FAQ, testimonial, and EVEN the "images" keywords array strictly into ${langName}. If the source is in a different language, translate it to ${langName}.
 2. publishedData: All fields in professional English for the public website.
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):
@@ -236,7 +236,7 @@ IMPORTANT RULES:
 2. Keep ALL unchanged fields exactly as they are — do not modify, rewrite, or rephrase anything the user didn't ask to change.
 3. If the user asks to change specific text like a tagline, service name, or about section, update ONLY that specific field.
 4. If the user asks to add something, add it without removing existing content.
-5. Ensure updatedPreviewData remains 100% in ${langName}. The updatedPublishedData must remain in professional English.
+5. Ensure updatedPreviewData remains 100% in ${langName} without a single English word (except proper names). Re-translate any English words introduced by the user's instruction into ${langName}.
 6. Provide a brief, friendly confirmation message in ${langName} that specifically describes what you changed (e.g., "I updated your tagline to...").
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):

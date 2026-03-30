@@ -45,9 +45,9 @@ export function buildModernTemplate(data, isPreview, langName) {
       contactNav: "தொடர்பு"
     },
     "Hindi": {
-      myBusiness: "मेरा व्यापार",
+      myBusiness: "मेरा व्यवसाय",
       professionalServices: "पेशेवर सेवाएं",
-      callUs: "हमें कॉल करें",
+      callUs: "कॉल करें",
       emailUs: "ईमेल करें",
       location: "स्थान",
       premiumQuality: "प्रीमियम गुणवत्ता",
@@ -58,8 +58,8 @@ export function buildModernTemplate(data, isPreview, langName) {
       getInTouch: "संपर्क करें",
       allRights: "सर्वाधिकार सुरक्षित",
       aboutUs: "हमारे बारे में",
-      faqTitle: "अक्सर पूछे जाने वाले प्रश्न",
-      testimonialsTitle: "ग्राहक समीक्षा",
+      faqTitle: "அக்சர் பூச்சே ஜானே வாலே ப்ரஷ்ன்",
+      testimonialsTitle: "ग्राहक समीक्षाएं",
       galleryTitle: "हमारा काम",
       home: "होम",
       servicesNav: "सेवाएं",
@@ -68,20 +68,20 @@ export function buildModernTemplate(data, isPreview, langName) {
     "Telugu": {
       myBusiness: "నా వ్యాపారం",
       professionalServices: "వృత్తిపరమైన సేవలు",
-      callUs: "మాకు కాల్ చేయండి",
+      callUs: "కాల్ చేయండి",
       emailUs: "ఈమెయిల్ చేయండి",
       location: "స్థానం",
       premiumQuality: "ప్రీమియం నాణ్యత",
-      guaranteedExp: "హామీ బడిన అనుభవం",
+      guaranteedExp: "హామీ ఇవ్వబడిన అనుభవం",
       whatWeDo: "మేము ఏమి చేస్తాము",
       expertise: "నైపుణ్యం మరియు సేవలు",
       generatedBy: "యుక్త ద్వారా సృష్టించబడింది",
-      getInTouch: "మమ్మల్ని సంప్రదించండి",
-      allRights: "సర్వ హక్కులూ ప్రత్యేకించబడినవి",
+      getInTouch: "సంప్రదించండి",
+      allRights: "అన్ని హక్కులు ప్రత్యేకించబడ్డాయి",
       aboutUs: "మా గురించి",
       faqTitle: "తరచుగా అడిగే ప్రశ్నలు",
-      testimonialsTitle: "కస్టమర్ అభిప్రాయాలు",
-      galleryTitle: "మా పని",
+      testimonialsTitle: "కస్టమர் అభిప్రాయాలు",
+      galleryTitle: "మా పనులు",
       home: "హోమ్",
       servicesNav: "సేవలు",
       contactNav: "సంప్రదించండి"
@@ -89,41 +89,41 @@ export function buildModernTemplate(data, isPreview, langName) {
     "Malayalam": {
       myBusiness: "എന്റെ ബിസിനസ്സ്",
       professionalServices: "പ്രൊഫഷണൽ സേവനങ്ങൾ",
-      callUs: "ഞങ്ങളെ വിളിക്കുക",
+      callUs: "വിളിക്കുക",
       emailUs: "ഇമെയിൽ ചെയ്യുക",
       location: "സ്ഥാനം",
-      premiumQuality: "പ്രീമിയം നിലവാരം",
+      premiumQuality: "പ്രീമിയം ഗുണനിലവാരം",
       guaranteedExp: "ഉറപ്പായ അനുഭവം",
       whatWeDo: "ഞങ്ങൾ ചെയ്യുന്നത്",
       expertise: "വൈദഗ്ധ്യവും സേവനങ്ങളും",
-      generatedBy: "യുക്ത നിർമ്മിച്ചത്",
+      generatedBy: "യുക്ത നിർമ്മിതം",
       getInTouch: "ബന്ധപ്പെടുക",
       allRights: "എല്ലാ അവകാശങ്ങളും നിക്ഷിപ്തം",
       aboutUs: "ഞങ്ങളെക്കുറിച്ച്",
-      faqTitle: "പതിവായി ചോദിക്കുന്ന ചോദ്യങ്ങൾ",
-      testimonialsTitle: "ഉപഭോക്തൃ അഭിപ്രായങ്ങൾ",
-      galleryTitle: "ഞങ്ങളുടെ പ്രവർത്തനം",
+      faqTitle: "പതിവായ ചോദ്യങ്ങൾ",
+      testimonialsTitle: "അഭിപ്രായങ്ങൾ",
+      galleryTitle: "ഞങ്ങളുടെ വർക്കുകൾ",
       home: "ഹോം",
       servicesNav: "സേവനങ്ങൾ",
       contactNav: "ബന്ധപ്പെടുക"
     },
     "Kannada": {
-      myBusiness: "ನನ್ನ ವ್ಯಾಪಾರ",
+      myBusiness: "ನನ್ನ ವ್ಯವಹಾರ",
       professionalServices: "ವೃತ್ತಿಪರ ಸೇವೆಗಳು",
-      callUs: "ನಮ್ಮನ್ನು ಕರೆ ಮಾಡಿ",
+      callUs: "ಕರೆ ಮಾಡಿ",
       emailUs: "ಇಮೇಲ್ ಮಾಡಿ",
       location: "ಸ್ಥಳ",
-      premiumQuality: "ಉತ್ತಮ ಗುಣಮಟ್ಟ",
+      premiumQuality: "ಪ್ರೀಮಿಯಂ ಗುಣಮಟ್ಟ",
       guaranteedExp: "ಖಾತರಿಯ ಅನುಭವ",
       whatWeDo: "ನಾವು ಮಾಡುವುದು",
       expertise: "ಪರಿಣತಿ ಮತ್ತು ಸೇವೆಗಳು",
-      generatedBy: "ಯುಕ್ತಾ ಮೂಲಕ ರಚಿಸಲಾಗಿದೆ",
+      generatedBy: "ಯುಕ್ತಾ ಮೂಲಕ ನಿರ್ಮಿತ",
       getInTouch: "ಸಂಪರ್ಕಿಸಿ",
-      allRights: "ಎಲ್ಲಾ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ",
+      allRights: "ಸರ್ವ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ",
       aboutUs: "ನಮ್ಮ ಬಗ್ಗೆ",
       faqTitle: "ಪದೇ ಪದೇ ಕೇಳಲಾಗುವ ಪ್ರಶ್ನೆಗಳು",
       testimonialsTitle: "ಗ್ರಾಹಕರ ವಿಮರ್ಶೆಗಳು",
-      galleryTitle: "ನಮ್ಮ ಕೆಲಸ",
+      galleryTitle: "ನಮ್ಮ ಕೆಲಸಗಳು",
       home: "ಹೋಮ್",
       servicesNav: "ಸೇವೆಗಳು",
       contactNav: "ಸಂಪರ್ಕಿಸಿ"
@@ -131,19 +131,19 @@ export function buildModernTemplate(data, isPreview, langName) {
     "Bengali": {
       myBusiness: "আমার ব্যবসা",
       professionalServices: "পেশাদার পরিষেবা",
-      callUs: "আমাদের কল করুন",
+      callUs: "কল করুন",
       emailUs: "ইমেল করুন",
       location: "অবস্থান",
       premiumQuality: "প্রিমিয়াম গুণমান",
       guaranteedExp: "নিশ্চিত অভিজ্ঞতা",
       whatWeDo: "আমরা যা করি",
       expertise: "দক্ষতা এবং পরিষেবা",
-      generatedBy: "যুক্তা দ্বারা তৈরি",
+      generatedBy: "যুক্তা দ্বারা নির্মিত",
       getInTouch: "যোগাযোগ করুন",
-      allRights: "সমস্ত অধিকার সংরক্ষিত",
+      allRights: "সর্বস্বত্ব সংরক্ষিত",
       aboutUs: "আমাদের সম্পর্কে",
-      faqTitle: "সাধারণ প্রশ্ন জিজ্ঞাসা",
-      testimonialsTitle: "গ্রাহক পর্যালোচনা",
+      faqTitle: "সাধারণ জিজ্ঞাসা",
+      testimonialsTitle: "ক্রেতা অভিজ্ঞতা",
       galleryTitle: "আমাদের কাজ",
       home: "হোম",
       servicesNav: "পরিষেবা",
@@ -152,6 +152,18 @@ export function buildModernTemplate(data, isPreview, langName) {
   };
 
   const tl = translations[isPreview ? langName : "English"] || translations["English"];
+
+  // Mapping langName to ISO code for <html lang="">
+  const langCodes = {
+    "Tamil": "ta",
+    "Hindi": "hi",
+    "Telugu": "te",
+    "Malayalam": "ml",
+    "Kannada": "kn",
+    "Bengali": "bn",
+    "English": "en"
+  };
+  const currentLangCode = isPreview ? (langCodes[langName] || 'en') : 'en';
 
   // Add fallbacks
   const displayName = name || business || tl.myBusiness;
@@ -241,7 +253,7 @@ export function buildModernTemplate(data, isPreview, langName) {
   };
 
   return `<!DOCTYPE html>
-<html lang="${isPreview ? 'en' : 'en'}" class="scroll-smooth">
+<html lang="${currentLangCode}" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -457,7 +469,7 @@ export function buildModernTemplate(data, isPreview, langName) {
         }
     </style>
 </head>
-<body class="bg-effect text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-0">
+<body class="bg-effect text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-0" oncontextmenu="return false">
 
     <!-- Sticky Navbar -->
     <nav class="site-nav" data-no-edit="true">
