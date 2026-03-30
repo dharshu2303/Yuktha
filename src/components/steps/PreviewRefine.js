@@ -16,7 +16,7 @@ export default function PreviewRefine({
   onContentUpdate,
 }) {
   const { t, language, speechLocale } = useTranslation();
-  const { isListening, transcript, startListening, stopListening, isSupported, setTranscript } = useVoiceRecognition(speechLocale);
+  const { isListening, transcript, interimTranscript, startListening, stopListening, isSupported, setTranscript } = useVoiceRecognition(speechLocale);
   
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
@@ -32,10 +32,11 @@ export default function PreviewRefine({
 
   // Sync voice transcript to input text
   useEffect(() => {
-    if (isListening && transcript !== undefined) {
-      setInputText(transcript);
+    if (isListening) {
+      const combined = transcript + (interimTranscript ? (transcript && !transcript.endsWith(' ') ? ' ' : '') + interimTranscript : '');
+      setInputText(combined);
     }
-  }, [transcript, isListening]);
+  }, [transcript, interimTranscript, isListening]);
 
   const handleVoiceToggle = () => {
     if (isListening) {

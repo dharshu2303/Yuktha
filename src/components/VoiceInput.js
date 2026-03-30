@@ -5,7 +5,7 @@ import useVoiceRecognition from "@/hooks/useVoiceRecognition";
 
 export default function VoiceInput({ onTranscriptChange }) {
   const { t, speechLocale, language } = useTranslation();
-  const { isListening, transcript, startListening, stopListening, isSupported, setTranscript } =
+  const { isListening, transcript, interimTranscript, startListening, stopListening, isSupported, setTranscript } =
     useVoiceRecognition(speechLocale);
 
   // Sync transcript to parent
@@ -27,6 +27,8 @@ export default function VoiceInput({ onTranscriptChange }) {
     }
   };
 
+  const displayText = transcript + (interimTranscript ? (transcript && !transcript.endsWith(' ') ? ' ' : '') + interimTranscript : '');
+
   // If speech not supported, show text-only input
   if (!isSupported) {
     return (
@@ -36,7 +38,7 @@ export default function VoiceInput({ onTranscriptChange }) {
         </label>
         <textarea
           rows={3}
-          value={transcript}
+          value={displayText}
           onChange={handleTextChange}
           placeholder={t("voiceInputPlaceholder")}
           className="w-full bg-white border-[1.5px] border-border rounded-input px-4 py-3 text-text-primary placeholder:text-text-secondary/50 transition-all duration-200 input-focus-glow focus:outline-none resize-none"
@@ -72,7 +74,7 @@ export default function VoiceInput({ onTranscriptChange }) {
         <div className="flex-1">
           <textarea
             rows={3}
-            value={transcript}
+            value={displayText}
             onChange={handleTextChange}
             placeholder={isListening ? t("listening") : t("voiceInputPlaceholder")}
             className="w-full bg-white border-[1.5px] border-border rounded-input px-4 py-3 text-text-primary placeholder:text-text-secondary/50 transition-all duration-200 input-focus-glow focus:outline-none resize-none text-sm"
