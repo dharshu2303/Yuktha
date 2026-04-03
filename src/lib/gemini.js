@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { buildModernTemplate } from "./templateEngine";
 
+// FIX for Windows/Next.js users encountering "TypeError: fetch failed" and 45-second timeouts
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const LANGUAGE_NAMES = {
@@ -114,7 +118,7 @@ Extract the following from the provided card and/or user-provided context:
 ${voiceText ? `Additional business details provided by the owner: "${voiceText}"` : ""}
 
 Generate two versions of this data:
-1. previewData: All fields completely translated into ${langName} for the user. CRITICAL REQUIREMENT: The previewData MUST be 100% in ${langName} without a single English word (except for proper names with no translation). You MUST translate every business term, service, tagline, FAQ, testimonial, and EVEN the "images" keywords array strictly into ${langName}. If the source is in a different language, translate it to ${langName}.
+1. previewData: All fields completely translated into ${langName} for the user. CRITICAL REQUIREMENT: The previewData MUST be 100% in ${langName} without a single English word (except for proper names with no translation). You MUST translate every business term, service, tagline, FAQ, and testimonial. EXCEPTION: Do NOT translate the "images" keywords array. Keep the "images" keywords in English so they format properly for the Stability API prompt.
 2. publishedData: All fields in professional English for the public website.
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):
@@ -202,6 +206,13 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
     throw new Error("Failed to parse AI response: Invalid JSON");
   }
 
+  // ALWAYS force image keywords to be English to prevent Stability AI failures
+  if (parsed.publishedData && parsed.publishedData.images && Array.isArray(parsed.publishedData.images)) {
+    if (parsed.previewData) {
+      parsed.previewData.images = [...parsed.publishedData.images];
+    }
+  }
+
   // Use Hybrid Template Engine to assemble HTML instantly
   const previewContent = buildModernTemplate(parsed.previewData, true, langName);
   const publishedContent = buildModernTemplate(parsed.publishedData, false, 'English');
@@ -238,6 +249,7 @@ IMPORTANT RULES:
 4. If the user asks to add something, add it without removing existing content.
 5. Ensure updatedPreviewData remains 100% in ${langName} without a single English word (except proper names). Re-translate any English words introduced by the user's instruction into ${langName}.
 6. Provide a brief, friendly confirmation message in ${langName} that specifically describes what you changed (e.g., "I updated your tagline to...").
+7. CRITICAL: The "images" array in BOTH updatedPreviewData and updatedPublishedData MUST remain in English at all times for the image generation API to work.
 
 Respond ONLY with valid JSON in this exact format (no markdown or thinking):
 {
@@ -273,6 +285,13 @@ Respond ONLY with valid JSON in this exact format (no markdown or thinking):
       jsonString.substring(0, 200)
     );
     throw new Error("Failed to parse AI response: Invalid JSON");
+  }
+
+  // ALWAYS force image keywords to be English to prevent Stability AI failures
+  if (parsed.updatedPublishedData && parsed.updatedPublishedData.images && Array.isArray(parsed.updatedPublishedData.images)) {
+    if (parsed.updatedPreviewData) {
+      parsed.updatedPreviewData.images = [...parsed.updatedPublishedData.images];
+    }
   }
 
   // Use Hybrid Template Engine to rebuild HTML

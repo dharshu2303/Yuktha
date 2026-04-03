@@ -244,12 +244,10 @@ export function buildModernTemplate(data, isPreview, langName) {
 
   const navHTML = navItems.map(n => `<a href="${n.href}" class="nav-link">${n.label}</a>`).join('');
 
-  // Generate relevant image URLs using loremflickr (keyword-based, content-relevant)
+  // Generate relevant image URLs using a local API route to Stability AI or fallback to loremflickr
   const getImageUrl = (keyword, index) => {
-    const cleanKeyword = encodeURIComponent((keyword || 'business').trim().replace(/\s+/g, ','));
-    // Combine site seed with index to guarantee unique images per session per keyword
-    const lockId = Math.abs(seed + index * 137);
-    return `https://loremflickr.com/800/600/${cleanKeyword}?lock=${lockId}`;
+    const cleanKeyword = encodeURIComponent((keyword || 'business').trim());
+    return `/api/image?prompt=${cleanKeyword}&t=${Date.now()}`;
   };
 
   return `<!DOCTYPE html>
@@ -608,10 +606,10 @@ export function buildModernTemplate(data, isPreview, langName) {
             <div class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar px-4 -mx-4">
                 ${images.map((imgKeyword, idx) => `
                 <div class="flex-none w-[85vw] sm:w-[320px] snap-center group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                    <!-- Dynamic Color Gradient Picture -->
-                    <div class="w-full h-full" style="background: linear-gradient(${135 + idx * 55}deg, var(--primary-color), #fff); filter: hue-rotate(${idx * 45}deg) saturate(1.5);"></div>
+                    <!-- Dynamic AI Generated Picture -->
+                    <img src="${getImageUrl(imgKeyword, idx)}" alt="${imgKeyword}" class="w-full h-full object-cover" loading="lazy" />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-all duration-500"></div>
-                    
+
                     <!-- Decorative Element -->
                     <div class="absolute top-4 right-4 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white/50 backdrop-blur-md group-hover:rotate-45 transition-transform duration-500">
                         <i class="fas fa-star"></i>
@@ -797,6 +795,18 @@ export function buildModernTemplate(data, isPreview, langName) {
                     renderer.setSize(parent.clientWidth, parent.clientHeight);
                 });
 
+                // Clean up WebGL context when iframe is unloaded/replaced to avoid context loss
+                window.addEventListener('unload', () => {
+                    renderer.dispose();
+                    geometry.dispose();
+                    material.dispose();
+                    if (mesh.userData.ring) {
+                        mesh.userData.ring.geometry.dispose();
+                        mesh.userData.ring.material.dispose();
+                    }
+                    renderer.forceContextLoss();
+                });
+
                 animate();
             }
 
@@ -848,7 +858,6 @@ export function buildModernTemplate(data, isPreview, langName) {
                 carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
             }, 2000);
         }
-        });
         
         // Right click restriction with visual feedback
         document.addEventListener('contextmenu', (e) => {

@@ -29,6 +29,7 @@ export default function PreviewRefine({
   const [editMode, setEditMode] = useState(false);
   const chatEndRef = useRef(null);
   const iframeRef = useRef(null);
+  const chatPanelRef = useRef(null);
 
   // Sync voice transcript to input text
   useEffect(() => {
@@ -53,56 +54,100 @@ export default function PreviewRefine({
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Update iframe — inject edit mode script only when edit mode is ON
+  // Update iframe ONLY when currentPreview changes
   useEffect(() => {
     if (iframeRef.current) {
       const doc = iframeRef.current.contentDocument;
       if (doc) {
+        // Manually trigger unload on the content window to clean up WebGL before overwriting
+        const win = iframeRef.current.contentWindow;
+        if (win) {
+          win.dispatchEvent(new Event('unload'));
+        }
+
         doc.open();
         doc.write(currentPreview);
         doc.close();
         
-        if (editMode) {
-          // Inject script AFTER doc.close() using appendChild for reliable multi-edit support
-          const script = doc.createElement('script');
-          script.textContent = `
-            (function() {
-              let lastOutline = null;
-              document.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Prevent selection of watermark, copyright, or non-editable elements
-                if (e.target.closest('[data-no-edit="true"]')) return;
-                
-                const text = e.target.innerText || e.target.textContent;
-                if (text && text.trim().length > 0 && text.trim().length < 200) {
-                  if (lastOutline) {
-                    lastOutline.style.outline = '';
-                    lastOutline.style.boxShadow = '';
-                  }
-                  e.target.style.outline = '2px solid #6C63FF';
-                  e.target.style.boxShadow = '0 0 0 4px rgba(108, 99, 255, 0.2)';
-                  e.target.style.borderRadius = '4px';
-                  lastOutline = e.target;
-                  
-                  window.parent.postMessage({ type: 'ELEMENT_CLICKED', text: text.trim() }, '*');
+        // Inject script AFTER doc.close() using appendChild for reliable multi-edit support
+        const script = doc.createElement('script');
+        script.textContent = `
+          (function() {
+            let isEditMode = false;
+            let lastOutline = null;
+
+            window.addEventListener('message', function(event) {
+              if (event.data && event.data.type === 'SET_EDIT_MODE') {
+                isEditMode = event.data.isEditMode;
+                if (!isEditMode && lastOutline) {
+                  lastOutline.style.outline = '';
+                  lastOutline.style.boxShadow = '';
+                  lastOutline = null;
                 }
-              });
-            })();
-          `;
+              }
+            });
+
+            document.addEventListener('click', function(e) {
+              if (!isEditMode) return;
+              
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Prevent selection of watermark, copyright, or non-editable elements
+              if (e.target.closest('[data-no-edit="true"]')) return;
+              
+              // Prevent 3D components from being selectable/clickable targets
+              if (e.target.tagName.toLowerCase() === 'canvas') return;
+              
+              const text = e.target.innerText || e.target.textContent;
+              if (text && text.trim().length > 0 && text.trim().length < 200) {
+                if (lastOutline) {
+                  lastOutline.style.outline = '';
+                  lastOutline.style.boxShadow = '';
+                }
+                e.target.style.outline = '2px solid #6C63FF';
+                e.target.style.boxShadow = '0 0 0 4px rgba(108, 99, 255, 0.2)';
+                e.target.style.borderRadius = '4px';
+                lastOutline = e.target;
+                
+                window.parent.postMessage({ type: 'ELEMENT_CLICKED', text: text.trim() }, '*');
+              }
+            });
+          })();
+        `;
+        if (doc.body) {
           doc.body.appendChild(script);
+        } else if (doc.head) {
+          doc.head.appendChild(script);
+        } else if (doc.documentElement) {
+          doc.documentElement.appendChild(script);
+        } else {
+          doc.appendChild(script);
         }
-        // In browse mode: no script injected → links, CTA, navbar all work normally
+
+        // Sync edit mode immediately
+        if (win) {
+          win.postMessage({ type: 'SET_EDIT_MODE', isEditMode: editMode }, '*');
+        }
       }
     }
-  }, [currentPreview, editMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPreview]); // Intentionally omitting editMode to prevent re-writing doc on toggle
+
+  // Sync editMode to the iframe without reloading it
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({ type: 'SET_EDIT_MODE', isEditMode: editMode }, '*');
+    }
+  }, [editMode]);
 
   // Listen for iframe clicks (edit mode only)
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data && event.data.type === 'ELEMENT_CLICKED') {
         setSelectedComponentText(event.data.text);
+        // Automatically scroll to the chat panel so user can type instructions
+        setTimeout(() => chatPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
       }
     };
     window.addEventListener('message', handleMessage);
@@ -203,23 +248,43 @@ export default function PreviewRefine({
                 {t("previewLabel")}
               </span>
               {/* Edit Mode Toggle */}
-              <button
-                onClick={() => {
-                  setEditMode(!editMode);
-                  if (editMode) setSelectedComponentText("");
-                }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
-                  editMode
-                    ? "bg-accent text-white shadow-md"
-                    : "bg-background-alt text-text-secondary hover:bg-accent/10 hover:text-accent border border-border"
-                }`}
-                title={editMode ? t("switchToBrowse") : t("switchToEdit")}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                {editMode ? t("editingBtn") : t("editBtn")}
-              </button>
+              {editMode ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-accent text-white shadow-sm border border-accent/20 cursor-default">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    {t("editingBtn")}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setEditMode(false);
+                      setSelectedComponentText("");
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-all duration-200"
+                    title="Cancel Edit Mode"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    {t("cancelBtn")}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setEditMode(true);
+                    if (window.innerWidth <= 1024) {
+                      setTimeout(() => chatPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-background-alt text-text-secondary hover:bg-accent/10 hover:text-accent border border-border transition-all duration-200"
+                  title={t("switchToEdit")}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  {t("editBtn")}
+                </button>
+              )}
             </div>
             <div className="bg-background-alt relative">
               {/* Edit mode indicator overlay */}
@@ -239,7 +304,7 @@ export default function PreviewRefine({
           </Card>
 
           {/* Chat (2/5) */}
-          <Card className="lg:col-span-2 flex flex-col" style={{ height: "660px" }}>
+          <Card ref={chatPanelRef} className="lg:col-span-2 flex flex-col" style={{ height: "660px" }}>
             <div className="p-3 border-b border-border">
               <span className="text-[11px] font-medium uppercase tracking-label text-text-secondary">
                 {t("refineLabel")}

@@ -21,16 +21,54 @@ export default function Home() {
   const [localUrl, setLocalUrl] = useState("");
   const [error, setError] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Splash screen transition (Step 0 → 1)
+  // Restore state from sessionStorage on mount
   useEffect(() => {
-    if (currentStep === 0) {
+    try {
+      const savedState = sessionStorage.getItem('yukthaAppState');
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        if (parsed.currentStep !== undefined) {
+          setCurrentStep(parsed.currentStep);
+          if (parsed.cardData) setCardData(parsed.cardData);
+          if (parsed.generatedContent) setGeneratedContent(parsed.generatedContent);
+          if (parsed.publishedUrl) setPublishedUrl(parsed.publishedUrl);
+          if (parsed.localUrl) setLocalUrl(parsed.localUrl);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not restore app state from sessionStorage", err);
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Save state to sessionStorage on updates
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      const stateToSave = {
+        currentStep,
+        cardData,
+        generatedContent,
+        publishedUrl,
+        localUrl
+      };
+      sessionStorage.setItem('yukthaAppState', JSON.stringify(stateToSave));
+    } catch (err) {
+      console.warn("Could not save app state to sessionStorage (might be over quota)", err);
+    }
+  }, [currentStep, cardData, generatedContent, publishedUrl, localUrl, isHydrated]);
+
+  // Splash screen transition (Step 0 → 1) - but prevent if we restored to >0
+  useEffect(() => {
+    if (isHydrated && currentStep === 0) {
       const timer = setTimeout(() => {
         setCurrentStep(1);
       }, 1200);
       return () => clearTimeout(timer);
     }
-  }, [currentStep]);
+  }, [currentStep, isHydrated]);
 
   // Step 1 → 2
   const handleLanguageSelected = useCallback(() => {
