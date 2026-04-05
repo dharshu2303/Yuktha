@@ -1,10 +1,4 @@
-// Complete translations for all 7 languages
-// Keys: ta (Tamil), hi (Hindi), te (Telugu), ml (Malayalam), kn (Kannada), bn (Bengali), en (English)
-
 const translations = {
-  // ==========================================
-  // STEP 1 — Language Selection (always English)
-  // ==========================================
   step1Title: {
     ta: "Choose Your Language",
     hi: "Choose Your Language",
@@ -24,9 +18,7 @@ const translations = {
     en: "Select your preferred language",
   },
 
-  // ==========================================
-  // STEP 2 — Card Capture
-  // ==========================================
+
   step2Title: {
     ta: "உங்கள் விசிட்டிங் கார்டை பதிவேற்றுங்கள்",
     hi: "अपना विज़िटिंग कार्ड अपलोड करें",
@@ -109,9 +101,7 @@ const translations = {
     en: "Listening...",
   },
 
-  // ==========================================
-  // STEP 3 — AI Generation (Loading Messages)
-  // ==========================================
+
   loadingMsg1: {
     ta: "உங்கள் அட்டையை படிக்கிறோம்...",
     hi: "आपका कार्ड पढ़ा जा रहा है...",

@@ -58,7 +58,7 @@ export function buildModernTemplate(data, isPreview, langName) {
       getInTouch: "संपर्क करें",
       allRights: "सर्वाधिकार सुरक्षित",
       aboutUs: "हमारे बारे में",
-      faqTitle: "அக்சர் பூச்சே ஜானே வாலே ப்ரஷ்ன்",
+      faqTitle: "अक्सर पूछे जाने वाले प्रश्न",
       testimonialsTitle: "ग्राहक समीक्षाएं",
       galleryTitle: "हमारा काम",
       home: "होम",
@@ -244,12 +244,7 @@ export function buildModernTemplate(data, isPreview, langName) {
 
   const navHTML = navItems.map(n => `<a href="${n.href}" class="nav-link">${n.label}</a>`).join('');
 
-  // Generate relevant image URLs using a local API route to Stability AI or fallback to loremflickr
-  const getImageUrl = (keyword, index) => {
-    const cleanKeyword = encodeURIComponent((keyword || 'business').trim());
-    return `/api/image?prompt=${cleanKeyword}&t=${Date.now()}`;
-  };
-
+  
   return `<!DOCTYPE html>
 <html lang="${currentLangCode}" class="scroll-smooth">
 <head>
@@ -392,6 +387,17 @@ export function buildModernTemplate(data, isPreview, langName) {
         /* Section scroll margin for fixed nav */
         section[id] { scroll-margin-top: 72px; }
 
+        
+        @keyframes glowPulse {
+            0% { filter: brightness(1) contrast(1); }
+            50% { filter: brightness(1.2) contrast(1.1) hue-rotate(15deg); }
+            100% { filter: brightness(1) contrast(1) hue-rotate(0deg); }
+        }
+
+        @keyframes blobFloat1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-80px,60px) scale(1.15)} }
+        @keyframes blobFloat2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(60px,-80px) scale(1.2)} }
+        @keyframes particleDrift { 0%{background-position:0 0} 100%{background-position:40px 40px} }
+
         /* Unique background effects */
         ${bgEffects}
 
@@ -437,14 +443,14 @@ export function buildModernTemplate(data, isPreview, langName) {
         }
         .service-card-3d:hover,
         .service-card-3d.touch-active {
-            transform: translateY(-10px) rotateX(4deg) rotateY(4deg);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15), 0 0 30px 4px var(--primary-color);
+            transform: translateY(-2px) rotateX(0.5deg) rotateY(0.5deg);
+            box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08), 0 0 8px 1px var(--primary-color);
             border-color: transparent;
         }
         .service-card-3d:hover .icon-container,
         .service-card-3d.touch-active .icon-container {
-            transform: translateZ(20px);
-            filter: drop-shadow(0 0 8px var(--primary-color));
+            transform: translateZ(4px);
+            filter: drop-shadow(0 0 2px var(--primary-color));
         }
 
         /* Animated Hero Gradient — cycles colors smoothly */
@@ -458,6 +464,16 @@ export function buildModernTemplate(data, isPreview, langName) {
         .hero-animated-gradient {
             animation: heroColorCycle 6s ease-in-out infinite;
         }
+
+        /* Premium Breathing Effect */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        .breathe-animation {
+            animation: breathe 8s ease-in-out infinite;
+        }
+
 
         .glass-panel-refined {
             background: rgba(255, 255, 255, 0.03);
@@ -593,7 +609,7 @@ export function buildModernTemplate(data, isPreview, langName) {
 
     <!-- Image Gallery Section -->
     ${images && images.length > 0 ? `
-    <section id="gallery" class="py-16 bg-[#f8fafc] animate-fade-in-up delay-200">
+    <section id="gallery" class="py-16 bg-[#f8fafc] animate-fade-in-up delay-200 overflow-hidden">
         <div class="container mx-auto px-6 max-w-6xl">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">${tl.galleryTitle}</h2>
@@ -602,28 +618,31 @@ export function buildModernTemplate(data, isPreview, langName) {
             <style>
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                .gallery-card { flex: 0 0 auto; width: 260px; max-width: 72vw; }
             </style>
-            <div class="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hide-scrollbar px-4 -mx-4">
+            <div class="flex overflow-x-auto snap-x snap-mandatory gap-5 pb-6 hide-scrollbar px-2">
                 ${images.map((imgKeyword, idx) => `
-                <div class="flex-none w-[85vw] sm:w-[320px] snap-center group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                    <!-- Dynamic AI Generated Picture -->
-                    <img src="${getImageUrl(imgKeyword, idx)}" alt="${imgKeyword}" class="w-full h-full object-cover" loading="lazy" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover:from-black/90 transition-all duration-500"></div>
+                <div class="gallery-card snap-center group relative rounded-2xl overflow-hidden aspect-[4/3] shadow-lg hover:shadow-xl transition-shadow duration-300 breathe-animation" style="background: linear-gradient(${(seed + idx * 45) % 360}deg, var(--primary-color), #a855f7, #3b82f6, #ec4899, #f43f5e, #f59e0b, #10b981, #8b5cf6, #d946ef, #fbbf24, #06b6d4, #14b8a6, var(--primary-color)); background-size: 600% 600%; animation-name: gradientBG, breathe; animation-duration: 10s, 8s; animation-timing-function: ease, ease-in-out; animation-iteration-count: infinite, infinite; animation-direction: alternate, normal; animation-delay: 0s, ${idx * 0.8}s;">
+                    <!-- Particle layer for this card -->
+
+                    <div class="absolute inset-0 pointer-events-none opacity-40 mix-blend-screen" style="background-image: radial-gradient(circle, rgba(255,255,255,1) 3px, transparent 4px), radial-gradient(circle, rgba(255,255,255,0.8) 2px, transparent 3px), radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 2px), radial-gradient(circle, var(--primary-color) 20px, transparent 40px); background-size: 60px 60px, 30px 30px, 15px 15px, 200px 200px; background-position: 0 0, 15px 15px, 30px 30px, 50% 50%; animation: particleDrift 15s linear infinite;"></div>
+                    <!-- Gradient overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent group-hover:from-black/90 transition-all duration-500"></div>
 
                     <!-- Decorative Element -->
-                    <div class="absolute top-4 right-4 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-white/50 backdrop-blur-md group-hover:rotate-45 transition-transform duration-500">
-                        <i class="fas fa-star"></i>
+                    <div class="absolute top-3 right-3 w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/50 backdrop-blur-md group-hover:rotate-45 transition-transform duration-500">
+                        <i class="fas fa-star text-sm"></i>
                     </div>
 
                     <!-- Centered Content on Hover -->
-                    <div class="absolute inset-0 flex items-center justify-center translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-10 px-6 text-center">
-                         <span class="text-white text-lg font-bold tracking-wider border-2 border-white/50 px-6 py-3 rounded-full backdrop-blur-md bg-black/20 shadow-lg">${imgKeyword}</span>
+                    <div class="absolute inset-0 flex items-center justify-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 z-10 px-4 text-center">
+                         <span class="text-white text-sm font-bold tracking-wider border-2 border-white/50 px-4 py-2 rounded-full backdrop-blur-md bg-black/20 shadow-lg">${imgKeyword}</span>
                     </div>
 
                     <!-- Default Bottom Title -->
-                    <div class="absolute bottom-6 left-6 right-6 text-white group-hover:opacity-0 transition-opacity duration-300">
-                        <div class="w-8 h-1 bg-white mb-3 rounded-full bg-opacity-70"></div>
-                        <div class="text-2xl font-bold drop-shadow-md capitalize truncate">${imgKeyword}</div>
+                    <div class="absolute bottom-4 left-4 right-4 text-white group-hover:opacity-0 transition-opacity duration-300 overflow-hidden">
+                        <div class="w-6 h-1 bg-white mb-2 rounded-full bg-opacity-70"></div>
+                        <div class="text-lg font-bold drop-shadow-md capitalize truncate">${imgKeyword}</div>
                     </div>
                 </div>
                 `).join('')}
@@ -634,7 +653,7 @@ export function buildModernTemplate(data, isPreview, langName) {
 
     <!-- Testimonials Section -->
     ${testimonials && testimonials.length > 0 ? `
-    <section class="py-24 bg-white animate-fade-in-up delay-300">
+    <section class="py-24 bg-white animate-fade-in-up delay-300 overflow-hidden">
         <div class="container mx-auto px-6 max-w-5xl">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight">${tl.testimonialsTitle}</h2>
@@ -660,7 +679,7 @@ export function buildModernTemplate(data, isPreview, langName) {
 
     <!-- FAQ Accordion -->
     ${faqs && faqs.length > 0 ? `
-    <section class="py-24 bg-[#f8fafc] animate-fade-in-up delay-300">
+    <section class="py-24 bg-[#f8fafc] animate-fade-in-up delay-300 overflow-hidden">
         <div class="container mx-auto px-6 max-w-3xl">
             <div class="text-center mb-12">
                 <h2 class="text-4xl font-extrabold text-slate-900 tracking-tight">${tl.faqTitle}</h2>
@@ -716,11 +735,22 @@ export function buildModernTemplate(data, isPreview, langName) {
                 if (!canvas) return;
 
                 const parent = canvas.parentElement;
+                if (!parent || parent.clientWidth === 0 || parent.clientHeight === 0) {
+                    // Try again in a bit if layout hasn't settled
+                    setTimeout(() => createScene(canvasId, geometryType), 200);
+                    return;
+                }
+
+                if (canvas.__initialized) return;
+                canvas.__initialized = true;
+
                 const scene = new THREE.Scene();
                 const camera = new THREE.PerspectiveCamera(75, parent.clientWidth / parent.clientHeight, 0.1, 1000);
                 const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(parent.clientWidth, parent.clientHeight);
+                renderer.setClearColor(0x000000, 0);
+
 
                 let geometry;
                 switch(geometryType) {
@@ -810,8 +840,24 @@ export function buildModernTemplate(data, isPreview, langName) {
                 animate();
             }
 
-            createScene('hero-3d-canvas', 0); // Always use TorusKnot for Hero
-            createScene('about-3d-canvas', ${uniqueSeed % 4});
+const initScenes = () => {
+                createScene('hero-3d-canvas', 0); // Always use TorusKnot for Hero  
+                createScene('about-3d-canvas', ${uniqueSeed % 4});
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 150);
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 500);
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 1000);
+                // Retry init for any canvas that didn't render
+                setTimeout(() => {
+                    if (document.getElementById('hero-3d-canvas') && !document.getElementById('hero-3d-canvas').__initialized) {
+                        createScene('hero-3d-canvas', 0);
+                    }
+                    if (document.getElementById('about-3d-canvas') && !document.getElementById('about-3d-canvas').__initialized) {
+                        createScene('about-3d-canvas', ${uniqueSeed % 4});
+                    }
+                    window.dispatchEvent(new Event('resize'));
+                }, 2000);
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initScenes); else initScenes();
         })();
 
         window.addEventListener('scroll', function() {
@@ -847,16 +893,16 @@ export function buildModernTemplate(data, isPreview, langName) {
             }, { passive: true });
         }
 
-        // Auto-scroll gradient carousel
+        // Auto-scroll gradient carousel — gentle, minimal movement
         const carousel = document.querySelector('.snap-x');
         if (carousel) {
             let scrollPos = 0;
             setInterval(() => {
                 const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-                scrollPos += carousel.clientWidth > 400 ? 344 : window.innerWidth * 0.85; // card width + gap
+                scrollPos += 280; // single card width + gap
                 if (scrollPos > maxScroll + 10) scrollPos = 0;
                 carousel.scrollTo({ left: scrollPos, behavior: 'smooth' });
-            }, 2000);
+            }, 4000);
         }
         
         // Right click restriction with visual feedback
